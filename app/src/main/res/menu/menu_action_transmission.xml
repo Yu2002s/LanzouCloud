@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/open_file"
+        android:icon="@drawable/baseline_open_in_new_24"
+        android:title="打开" />
+    <item android:id="@+id/share_file"
+        android:icon="@drawable/baseline_share_24"
+        android:title="分享"/>
+    <item android:title="删除"
+        android:icon="@drawable/baseline_delete_24"
+        android:id="@+id/delete_download"/>
+    <item android:title="详情"
+        android:id="@+id/detail_file"
+        android:icon="@drawable/baseline_info_24"/>
+</menu>

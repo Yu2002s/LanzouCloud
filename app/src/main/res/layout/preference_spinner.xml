@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:backgroundTint="@android:color/holo_red_dark"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <!-- This spinner should be invisible in the layout and take up no space, when the Preference
+         is clicked the dropdown will appear from this location on screen. -->
+    <androidx.appcompat.widget.AppCompatSpinner
+        android:spinnerMode="dropdown"
+        android:id="@+id/spinner"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/preference_dropdown_padding_start"
+        android:visibility="invisible"
+        tools:ignore="PrivateResource" />
+
+    <include layout="@layout/preference_material"
+        tools:ignore="PrivateResource" />
+
+</FrameLayout>

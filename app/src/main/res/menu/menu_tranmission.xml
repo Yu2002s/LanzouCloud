@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item android:id="@+id/search_file"
+        android:title="搜索"
+        app:actionViewClass="androidx.appcompat.widget.SearchView"
+        app:showAsAction="always"
+        android:icon="@drawable/baseline_search_24"/>
+    <item android:id="@+id/stop_all"
+        android:title="全部停止"
+        android:icon="@drawable/baseline_pause_24"/>
+    <item android:id="@+id/resume_all"
+        android:icon="@drawable/baseline_play_arrow_24"
+        android:title="全部继续"/>
+    <item android:id="@+id/delete_all"
+        android:title="删除所有"
+        android:icon="@drawable/baseline_clear_all_24"/>
+</menu>

@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <PreferenceCategory
+        app:iconSpaceReserved="false"
+        app:title="下载与安装">
+
+        <EditTextPreference
+            app:defaultValue="/storage/emulated/0/Download"
+            app:dialogMessage="请输入正确的下载路径，如果你未授权储存权限，则默认保存在软件私有目录"
+            app:iconSpaceReserved="false"
+            app:key="download_path"
+            app:title="下载保存路径"
+            app:useSimpleSummaryProvider="true" />
+
+        <SwitchPreferenceCompat
+            app:defaultValue="true"
+            app:iconSpaceReserved="false"
+            app:key="auto_install"
+            app:summary="在文件下载完成后主动跳转安装页面"
+            app:title="自动安装APK" />
+
+        <SeekBarPreference
+            android:max="16"
+            app:defaultValue="3"
+            app:iconSpaceReserved="false"
+            app:isPreferenceVisible="true"
+            app:key="thread_count"
+            app:min="1"
+            app:seekBarIncrement="1"
+            app:showSeekBarValue="true"
+            app:summary="下载线程不是越多越好"
+            app:title="下载线程数" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        app:iconSpaceReserved="false"
+        app:allowDividerAbove="false"
+        app:title="其他">
+
+        <SwitchPreferenceCompat
+            app:defaultValue="true"
+            app:key="check_clip"
+            app:iconSpaceReserved="false"
+            app:title="检查剪切板"
+            app:summary="回到软件中自动检查剪切板中的url和密码(支持多文件)"/>
+
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        app:allowDividerAbove="false"
+        app:title="关于软件"
+        app:iconSpaceReserved="false">
+
+        <Preference
+            app:key="app_history"
+            app:iconSpaceReserved="false"
+            app:title="历史版本" />
+
+        <Preference
+            app:iconSpaceReserved="false"
+            app:title="作者"
+            app:summary="冬日暖雨"/>
+
+        <Preference
+            app:key="join_qq_group"
+            app:iconSpaceReserved="false"
+            app:title="QQ交流群"
+            app:summary="可以加群反馈问题和建议"/>
+
+        <Preference
+            app:key="open_source"
+            app:iconSpaceReserved="false"
+            app:title="开源相关"
+            app:summary="使用到的一些第三方开源库"/>
+
+
+    </PreferenceCategory>
+
+
+</PreferenceScreen>

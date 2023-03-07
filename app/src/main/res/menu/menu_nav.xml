@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:title="首页"
+        android:id="@+id/fileFragment"
+        android:icon="@drawable/baseline_home_24"/>
+    <item android:title="传输"
+        android:id="@+id/transmissionFragment"
+        android:icon="@drawable/baseline_swap_vert_24"/>
+    <item android:id="@+id/userFragment"
+        android:title="我"
+        android:icon="@drawable/baseline_person_24"/>
+    <item android:id="@+id/settingFragment"
+        android:title="设置"
+        android:icon="@drawable/baseline_settings_24"/>
+</menu>

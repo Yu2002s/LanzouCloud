@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/fileFragment">
+
+    <fragment
+        android:id="@+id/fileFragment"
+        android:name="cc.drny.lanzou.ui.file.FileFragment"
+        android:label="首页"
+        tools:layout="@layout/fragment_file">
+        <action
+            android:id="@+id/action_fileFragment_self"
+            app:destination="@id/fileFragment" />
+        <action
+            android:id="@+id/action_fileFragment_to_newFolderDialogFragment"
+            app:destination="@id/newFolderDialogFragment" />
+        <action
+            android:id="@+id/action_fileFragment_to_moveFileDialogFragment"
+            app:destination="@id/moveFileDialogFragment" />
+        <argument
+            android:name="lanzouPage"
+            android:defaultValue="@null"
+            app:argType="cc.drny.lanzou.data.lanzou.LanzouPage"
+            app:nullable="true" />
+        <argument
+            android:name="name"
+            android:defaultValue="根目录"
+            app:argType="string"
+            app:nullable="true" />
+        <action
+            android:id="@+id/action_fileFragment_to_fileDetailsDialogFragment"
+            app:destination="@id/fileDetailsDialogFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/userFragment"
+        android:name="cc.drny.lanzou.ui.user.UserFragment"
+        android:label="UserFragment"
+        tools:layout="@layout/fragment_user">
+        <action
+            android:id="@+id/action_userFragment_to_loginFragment"
+            app:destination="@id/loginFragment" />
+        <action
+            android:id="@+id/action_userFragment_to_settingFragment"
+            app:destination="@id/settingFragment" />
+        <action
+            android:id="@+id/action_userFragment_to_recycleBinFragment"
+            app:destination="@id/recycleBinFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/loginFragment"
+        android:name="cc.drny.lanzou.ui.user.LoginFragment"
+        android:label="LoginFragment">
+        <action
+            android:id="@+id/action_loginFragment_to_webViewFragment"
+            app:destination="@id/webViewFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/webViewFragment"
+        android:name="cc.drny.lanzou.ui.web.WebViewFragment"
+        android:label="WebViewFragment">
+        <argument
+            android:name="url"
+            app:argType="string" />
+        <argument
+            android:name="isLogin"
+            app:argType="boolean" />
+    </fragment>
+    <fragment
+        android:id="@+id/uploadFragment"
+        android:name="cc.drny.lanzou.ui.upload.UploadFragment"
+        android:label="UploadFragment" />
+    <fragment
+        android:id="@+id/uploadFileFragment"
+        android:name="cc.drny.lanzou.ui.upload.UploadFileFragment"
+        android:label="上传文件">
+        <action
+            android:id="@+id/action_uploadFileFragment_to_uploadFileDialogFragment"
+            app:destination="@id/uploadFileDialogFragment" />
+    </fragment>
+    <action
+        android:id="@+id/action_global_uploadFileFragment"
+        app:destination="@id/uploadFileFragment" />
+
+    <dialog
+        android:id="@+id/uploadFileDialogFragment"
+        android:name="cc.drny.lanzou.ui.upload.UploadFileDialogFragment"
+        android:label="上传文件">
+        <argument
+            android:name="external"
+            android:defaultValue="false"
+            app:argType="boolean" />
+        <argument
+            android:name="files"
+            android:defaultValue="@null"
+            app:argType="cc.drny.lanzou.data.upload.FileInfo[]"
+            app:nullable="true" />
+    </dialog>
+    <fragment
+        android:id="@+id/transmissionFragment"
+        android:name="cc.drny.lanzou.ui.TransmissionFragment"
+        android:label="传输" />
+    <fragment
+        android:id="@+id/downloadFragment"
+        android:name="cc.drny.lanzou.ui.download.DownloadFragment"
+        android:label="DownloadFragment" />
+    <dialog
+        android:id="@+id/newFolderDialogFragment"
+        android:name="cc.drny.lanzou.ui.file.NewFolderDialogFragment"
+        android:label="NewFolderDialogFragment">
+        <argument
+            android:name="folderId"
+            app:argType="long" />
+    </dialog>
+    <dialog
+        android:id="@+id/moveFileDialogFragment"
+        android:name="cc.drny.lanzou.ui.file.MoveFileDialogFragment"
+        android:label="MoveFileDialogFragment">
+        <argument
+            android:name="lanzouPage"
+            app:argType="cc.drny.lanzou.data.lanzou.LanzouPage" />
+        <argument
+            android:name="fileIds"
+            app:argType="long[]" />
+    </dialog>
+    <dialog
+        android:id="@+id/fileDetailsDialogFragment"
+        android:name="cc.drny.lanzou.ui.file.FileDetailsDialogFragment"
+        android:label="FileDetailsDialogFragment">
+        <argument
+            android:name="fileId"
+            app:argType="long" />
+        <argument
+            android:name="fileName"
+            app:argType="string" />
+        <argument
+            android:name="isFile"
+            android:defaultValue="true"
+            app:argType="boolean" />
+    </dialog>
+    <action
+        android:id="@+id/action_global_uploadFileDialogFragment"
+        app:destination="@id/uploadFileDialogFragment" />
+    <fragment
+        android:id="@+id/settingFragment"
+        android:name="cc.drny.lanzou.ui.setting.SettingFragment"
+        android:label="SettingFragment" />
+    <dialog
+        android:id="@+id/analyzeFileDialogFragment"
+        android:name="cc.drny.lanzou.ui.analyze.AnalyzeFileDialogFragment"
+        android:label="AnalyzeFileDialogFragment">
+        <argument
+            android:name="files"
+            android:defaultValue="@null"
+            app:argType="cc.drny.lanzou.data.lanzou.LanzouShareFile[]"
+            app:nullable="true" />
+        <action
+            android:id="@+id/action_analyzeFileDialogFragment_to_analyzeFolderDialogFragment"
+            app:destination="@id/analyzeFolderDialogFragment" />
+    </dialog>
+    <action
+        android:id="@+id/action_global_analyzeFileDialogFragment"
+        app:destination="@id/analyzeFileDialogFragment" />
+    <fragment
+        android:id="@+id/recycleBinFragment"
+        android:name="cc.drny.lanzou.ui.recycle.RecycleBinFragment"
+        android:label="RecycleBinFragment" />
+    <fragment
+        android:id="@+id/localFileFragment"
+        android:name="cc.drny.lanzou.ui.upload.LocalFileFragment"
+        android:label="LocalFileFragment">
+        <argument
+            android:name="path"
+            android:defaultValue="/storage/emulated/0"
+            app:argType="string" />
+        <argument
+            android:name="name"
+            android:defaultValue="根目录"
+            app:argType="string" />
+    </fragment>
+    <action
+        android:id="@+id/action_global_localFileFragment"
+        app:destination="@id/localFileFragment" />
+    <dialog
+        android:id="@+id/analyzeFolderDialogFragment"
+        android:name="cc.drny.lanzou.ui.analyze.AnalyzeFolderDialogFragment"
+        android:label="AnalyzeFolderDialogFragment" >
+        <argument
+            android:name="share"
+            app:argType="cc.drny.lanzou.data.lanzou.LanzouShareFile" />
+    </dialog>
+    <fragment
+        android:id="@+id/androidDataFragment"
+        android:name="cc.drny.lanzou.ui.upload.AndroidDataFragment"
+        android:label="AndroidDataFragment" >
+        <argument
+            android:name="path"
+            app:argType="string" />
+        <argument
+            android:name="name"
+            app:argType="string"
+            android:defaultValue="上传文件" />
+    </fragment>
+    <action android:id="@+id/action_global_androidDataFragment" app:destination="@id/androidDataFragment" /><action android:id="@+id/action_global_analyzeFolderDialogFragment" app:destination="@id/analyzeFolderDialogFragment"/>
+</navigation>

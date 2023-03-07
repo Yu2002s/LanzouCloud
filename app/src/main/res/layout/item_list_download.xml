@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="8dp"
+    app:contentPadding="16dp">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <com.google.android.material.checkbox.MaterialCheckBox
+            android:id="@+id/cb_download"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            app:layout_constraintBottom_toBottomOf="@id/iv_file_icon"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <ImageView
+            android:id="@+id/iv_file_icon"
+            android:layout_width="45dp"
+            android:layout_height="45dp"
+            android:layout_marginStart="10dp"
+            android:scaleType="centerCrop"
+            app:layout_constraintStart_toEndOf="@id/cb_download"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:src="@tools:sample/avatars" />
+
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/tv_file_name"
+            style="@style/TextAppearance.Material3.TitleMedium"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:layout_marginEnd="10dp"
+            android:ellipsize="middle"
+            android:maxLines="1"
+            app:layout_constraintEnd_toStartOf="@id/btn_control_download"
+            app:layout_constraintStart_toEndOf="@id/iv_file_icon"
+            app:layout_constraintTop_toTopOf="@id/iv_file_icon"
+            tools:text="Chrome-123-12123133213213-1231.apk" />
+
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/tv_file_size"
+            android:layout_width="wrap_content"
+            android:layout_height="0dp"
+            android:layout_marginEnd="10dp"
+            app:layout_constraintEnd_toStartOf="@+id/tv_file_status"
+            app:layout_constraintStart_toEndOf="@id/iv_file_icon"
+            app:layout_constraintStart_toStartOf="@id/tv_file_name"
+            app:layout_constraintTop_toBottomOf="@id/tv_file_name"
+            tools:text="23.34M" />
+
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/tv_file_status"
+            android:layout_width="wrap_content"
+            android:layout_height="0dp"
+            android:layout_marginEnd="10dp"
+            app:layout_constraintEnd_toStartOf="@id/tv_folder_name"
+            app:layout_constraintStart_toEndOf="@id/tv_file_size"
+            app:layout_constraintTop_toTopOf="@id/tv_file_size"
+            tools:text="上传中..." />
+
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/tv_folder_name"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="1"
+            app:layout_constraintEnd_toEndOf="@id/tv_file_name"
+            app:layout_constraintStart_toEndOf="@id/tv_file_status"
+            app:layout_constraintTop_toTopOf="@id/tv_file_size"
+            tools:text="LanzouCloud" />
+
+        <ImageButton
+            android:id="@+id/btn_control_download"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_control_upload"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="@id/iv_file_icon"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="@id/iv_file_icon"
+            tools:visibility="visible" />
+
+        <com.google.android.material.progressindicator.LinearProgressIndicator
+            android:id="@+id/progress_horizontal"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:visibility="gone"
+            app:layout_constraintStart_toStartOf="@id/iv_file_icon"
+            app:layout_constraintTop_toBottomOf="@id/iv_file_icon"
+            tools:progress="50"
+            tools:visibility="gone" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</com.google.android.material.card.MaterialCardView>

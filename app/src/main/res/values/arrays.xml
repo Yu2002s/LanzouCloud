@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <string-array name="simple_list">
+        <item>List Item!1</item>
+        <item>List Item!2</item>
+        <item>List Item!3</item>
+        <item>List Item!4</item>
+        <item>List Item!5</item>
+    </string-array>
+
+</resources>

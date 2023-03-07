@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:tools="http://schemas.android.com/tools"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item android:id="@+id/download"
+        android:title="下载"
+        android:icon="@drawable/baseline_arrow_circle_down_24"/>
+    <item android:id="@+id/share"
+        android:icon="@drawable/baseline_share_24"
+        android:title="分享"/>
+    <item android:id="@+id/move"
+        android:icon="@drawable/baseline_open_with_24"
+        android:title="移动"/>
+    <item android:id="@+id/detail"
+        android:icon="@drawable/baseline_edit_24"
+        android:title="详情"/>
+    <item android:id="@+id/delete"
+        android:icon="@drawable/baseline_delete_24"
+        android:title="删除"/>
+</menu>

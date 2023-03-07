@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item android:id="@+id/search_file"
+        android:icon="@drawable/baseline_search_24"
+        app:showAsAction="always"
+        app:actionViewClass="androidx.appcompat.widget.SearchView"
+        android:title="搜索"/>
+    <item android:id="@+id/restore_file"
+        android:icon="@drawable/baseline_restore_24"
+        android:title="恢复"/>
+    <item android:id="@+id/delete_file"
+        android:icon="@drawable/baseline_delete_24"
+        android:title="删除"/>
+</menu>
