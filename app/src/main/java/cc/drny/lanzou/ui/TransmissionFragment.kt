@@ -1,12 +1,9 @@
 package cc.drny.lanzou.ui
 
 import android.content.Context
-import android.graphics.Color
-import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.util.Log
 import android.view.*
-import android.widget.TextView
 import androidx.appcompat.widget.SearchView
 import androidx.appcompat.widget.SearchView.OnQueryTextListener
 import androidx.core.view.MenuProvider
@@ -15,21 +12,16 @@ import androidx.fragment.app.Fragment
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import androidx.viewpager2.widget.ViewPager2.OnPageChangeCallback
 import cc.drny.lanzou.R
+import cc.drny.lanzou.adapter.BaseAdapter
 import cc.drny.lanzou.base.BaseFragment
-import cc.drny.lanzou.base.BaseSuperFragment
 import cc.drny.lanzou.databinding.ContentToolbarTransmissionBinding
 import cc.drny.lanzou.databinding.FragmentTransmissionBinding
 import cc.drny.lanzou.event.FileFilterable
-import cc.drny.lanzou.event.Scrollable
 import cc.drny.lanzou.ui.download.DownloadFragment
-import cc.drny.lanzou.ui.download.DownloadFragmentDirections
 import cc.drny.lanzou.ui.upload.UploadFragment
-import cc.drny.lanzou.ui.user.LoginFragmentDirections
+import cc.drny.lanzou.util.enableMenuIcon
+import cc.drny.lanzou.util.showToast
 import com.google.android.material.button.MaterialButton
-import com.google.android.material.button.MaterialButtonToggleGroup
-import com.google.android.material.tabs.TabLayout
-import com.google.android.material.tabs.TabLayoutMediator
-import org.w3c.dom.Text
 
 class TransmissionFragment : BaseFragment(), MenuProvider {
 
@@ -40,6 +32,10 @@ class TransmissionFragment : BaseFragment(), MenuProvider {
     private val toolBarBinding get() = _toolBarBinding!!
 
     private val fragments = mutableListOf<Fragment>()
+
+    var searchKey: String = ""
+
+    private var searchView: SearchView? = null
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
@@ -82,13 +78,16 @@ class TransmissionFragment : BaseFragment(), MenuProvider {
         toolBarBinding.btnUpload.setOnClickListener {
             binding.viewpager2.currentItem = 1
         }
-
-        requireActivity().addMenuProvider(this, viewLifecycleOwner)
+        addMenuProvider(this)
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        savedInstanceState?.let {
+            searchKey = it.getString(BaseAdapter.SEARCH_KEY, "")
+        }
 
         binding.viewpager2.adapter = MyPagerAdapter()
 
@@ -99,27 +98,31 @@ class TransmissionFragment : BaseFragment(), MenuProvider {
         })
     }
 
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putString(BaseAdapter.SEARCH_KEY, searchKey)
+        // 这里取消调用防止离开软件，过滤失效的问题
+        searchView?.setOnQueryTextListener(null)
+    }
+
     override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+        menu.enableMenuIcon()
         menuInflater.inflate(R.menu.menu_tranmission, menu)
-        val searchView = menu.findItem(R.id.search_file).actionView as SearchView
-        searchView.setOnQueryTextFocusChangeListener { _, hasFocus ->
-            if (!hasFocus && searchView.query.isNotEmpty()) {
-                val fragment = fragments[binding.viewpager2.currentItem]
-                if (fragment is FileFilterable) {
-                    searchView.requestFocus()
-                    searchView.onActionViewExpanded()
-                    // TODO: 待完成
-                    // fragment.onFilter("")
-                }
-            }
+        val searchItem = menu.findItem(R.id.search_file)
+        searchView = searchItem.actionView as SearchView
+        if (searchKey.isNotEmpty()) {
+            searchItem.expandActionView()
+            searchView?.setQuery(searchKey, false)
         }
-        searchView.setOnQueryTextListener(object : OnQueryTextListener {
+
+        searchView?.setOnQueryTextListener(object : OnQueryTextListener {
             override fun onQueryTextChange(newText: String?): Boolean {
+                searchKey = newText.toString()
                 val fragment = fragments[binding.viewpager2.currentItem]
                 if (fragment is FileFilterable) {
-                    fragment.onFilter(newText)
+                    fragment.onFilter(searchKey)
                 }
-                return false
+                return true
             }
 
             override fun onQueryTextSubmit(query: String?): Boolean {
@@ -129,6 +132,9 @@ class TransmissionFragment : BaseFragment(), MenuProvider {
     }
 
     override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
+        if (menuItem.itemId != R.id.search_file) {
+            "还没做".showToast()
+        }
         return false
     }
 
@@ -143,8 +149,8 @@ class TransmissionFragment : BaseFragment(), MenuProvider {
 
     override fun onDestroyView() {
         super.onDestroyView()
+        searchView = null
         _binding = null
-        requireActivity().removeMenuProvider(this)
     }
 
 }

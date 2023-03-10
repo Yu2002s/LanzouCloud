@@ -2,6 +2,7 @@ package cc.drny.lanzou.ui.file
 
 import android.content.ClipData
 import android.content.ClipboardManager
+import android.content.Intent
 import android.util.Log
 import android.view.*
 import androidx.appcompat.widget.PopupMenu
@@ -18,11 +19,13 @@ import cc.drny.lanzou.network.LanzouRepository
 import cc.drny.lanzou.service.DownloadService
 import cc.drny.lanzou.ui.download.DownloadViewModel
 import cc.drny.lanzou.util.enableMenuIcon
+import cc.drny.lanzou.util.getTextIntent
 import cc.drny.lanzou.util.showToast
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.jsoup.Connection.Base
 
 object FileActionHelper {
 
@@ -30,7 +33,8 @@ object FileActionHelper {
         fragment: Fragment,
         menu: MenuItem,
         lanzouPage: LanzouPage,
-        clipboardManager: ClipboardManager
+        clipboardManager: ClipboardManager,
+        searchView: SearchView?
     ): Boolean {
 
         with(fragment) {
@@ -41,16 +45,22 @@ object FileActionHelper {
                 }
 
                 R.id.new_folder -> {
+                    searchView?.setOnQueryTextListener(null)
                     newFolder(lanzouPage)
                     true
                 }
 
-                R.id.share_folder -> {
+                R.id.copy_text -> {
                     shareFolder(lanzouPage, clipboardManager)
+                    true
+                }
+                R.id.share_text -> {
+                    shareFolder(lanzouPage)
                     true
                 }
 
                 R.id.edit_folder -> {
+                    searchView?.setOnQueryTextListener(null)
                     editFolder(lanzouPage)
                     true
                 }
@@ -60,18 +70,21 @@ object FileActionHelper {
         }
     }
 
-    fun createSearchMenuItem(menu: Menu, menuInflater: MenuInflater, fileAdapter: FileAdapter) {
-        menu.enableMenuIcon()
-        menuInflater.inflate(R.menu.menu_folder_action, menu)
-        val searchView = menu.findItem(R.id.search_file).actionView as SearchView
-        searchView.queryHint = "请输入关键字进行搜索"
-        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
-            override fun onQueryTextChange(newText: String?): Boolean {
+    fun createSearchMenuItem(
+        searchView: SearchView?,
+        fileAdapter: FileAdapter,
+        viewModel: FileViewModel
+    ) {
+        searchView?.queryHint = "请输入关键字进行搜索"
+        searchView?.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+            override fun onQueryTextChange(newText: String): Boolean {
+                if (newText == viewModel.key) return true
+                viewModel.key = newText
                 fileAdapter.filter(newText)
                 return true
             }
 
-            override fun onQueryTextSubmit(query: String?): Boolean {
+            override fun onQueryTextSubmit(query: String): Boolean {
                 return false
             }
         })
@@ -88,6 +101,7 @@ object FileActionHelper {
         position: Int,
         lanzouPage: LanzouPage,
         clipboardManager: ClipboardManager,
+        searchView: SearchView?,
         callback: () -> Unit
     ) {
         with(fragment) {
@@ -98,7 +112,13 @@ object FileActionHelper {
                 when (it.itemId) {
                     R.id.download -> {
                         if (lanzouFile.isSelected) {
-                            downloadFiles(lanzouFiles, fileAdapter, downloadService, downloadViewModel, callback)
+                            downloadFiles(
+                                lanzouFiles,
+                                fileAdapter,
+                                downloadService,
+                                downloadViewModel,
+                                callback
+                            )
                         } else {
                             downloadService.addDownload(lanzouFile) { download ->
                                 downloadViewModel.addDownload(download)
@@ -114,24 +134,39 @@ object FileActionHelper {
                         }
                     }
 
-                    R.id.share -> {
+                    R.id.copy_text -> {
                         if (lanzouFile.isSelected) {
-                            shareFiles()
+                            callback.invoke()
+                            shareFiles(lanzouFiles, fileAdapter, clipboardManager)
                         } else {
                             shareFile(lanzouFile, clipboardManager)
                         }
                     }
+                    R.id.share_text -> {
+                        if (lanzouFile.isSelected) {
+                            callback.invoke()
+                            shareFiles(lanzouFiles, fileAdapter)
+                        } else {
+                            shareFile(lanzouFile)
+                        }
+                    }
+                    R.id.share_file -> {
+
+                    }
 
                     R.id.move -> {
+                        searchView?.setOnQueryTextListener(null)
                         if (lanzouFile.isSelected) {
                             moveFiles(lanzouFiles, lanzouPage, fileAdapter)
                         } else {
                             moveFile(lanzouFile, lanzouPage)
                         }
-
                     }
 
-                    R.id.detail -> editFile(lanzouFile)
+                    R.id.detail -> {
+                        searchView?.setOnQueryTextListener(null)
+                        editFile(lanzouFile)
+                    }
                 }
                 true
             }
@@ -156,13 +191,12 @@ object FileActionHelper {
                 lanzouFiles.forEachIndexed { index, lanzouFile ->
                     if (lanzouFile.isSelected) {
                         lanzouFile.isSelected = false
-                        fileAdapter.updateItem(index, BaseAdapter.NOTIFY_KEY)
-                        Log.d("jdy", "index: $index")
-                        /*if (lanzouFile.isFile()) {
+                        fileAdapter.updateItems(index, lanzouFile, BaseAdapter.NOTIFY_KEY)
+                        if (lanzouFile.isFile()) {
                             downloadService.addDownload(lanzouFile) { download ->
                                 downloadViewModel.addDownload(download)
                             }
-                        }*/
+                        }
                         if (--count == 0) return@forEachIndexed
                     }
                 }
@@ -182,7 +216,6 @@ object FileActionHelper {
             setTitle("删除${lanzouFile.getFileName()}")
             setMessage("是否删除该文件，删除后可在回收站中恢复")
             setPositiveButton("删除") { _, _ ->
-                // isMultiMode = false
                 // 删除文件
                 lifecycleScope.launch {
                     val result = withContext(Dispatchers.IO) {
@@ -217,17 +250,14 @@ object FileActionHelper {
                     for (i in lanzouFiles.size - 1 downTo 0) {
                         val lanzouFile = lanzouFiles[i]
                         if (lanzouFile.isSelected) {
-                            lanzouFiles.removeAt(i)
-                            fileAdapter.notifyItemRemoved(i)
-                            /*withContext(Dispatchers.IO) {
+                            withContext(Dispatchers.IO) {
                                 LanzouRepository.deleteFileOrFolder(
                                     lanzouFile.getId(),
                                     lanzouFile.isFile()
                                 )
                             }.onSuccess {
-                                lanzouFiles.removeAt(i)
-                                fileAdapter.notifyItemRemoved(i)
-                            }*/
+                                fileAdapter.removeItems(i, lanzouFile)
+                            }
                             if (--count == 0) {
                                 break
                             }
@@ -240,13 +270,63 @@ object FileActionHelper {
         }
     }
 
-    private fun shareFiles() {
-        /*lifecycleScope.launch {
-
-        }*/
+    private fun Fragment.shareFiles(
+        lanzouFiles: List<LanzouFile>,
+        fileAdapter: FileAdapter,
+        clipboardManager: ClipboardManager? = null
+    ) {
+        lifecycleScope.launch {
+            var count = 0
+            val content = with(StringBuilder()) {
+                for (index in lanzouFiles.indices) {
+                    val lanzouFile = lanzouFiles[index]
+                    if (!lanzouFile.isSelected) {
+                        continue
+                    }
+                    count++
+                    val result = withContext(Dispatchers.IO) {
+                        if (lanzouFile.isFile()) {
+                            LanzouRepository.getFileInfo(lanzouFile.fileId)
+                        } else {
+                            LanzouRepository.getFolder(lanzouFile.folderId)
+                        }
+                    }
+                    result.onSuccess {
+                        lanzouFile.isSelected = false
+                        fileAdapter.updateItems(index, lanzouFile, BaseAdapter.NOTIFY_KEY)
+                        append(lanzouFile.getFileName())
+                        append("\n")
+                        if (lanzouFile.isFile()) {
+                            val content = LanzouRepository.getShareUrl(it)
+                            append(content)
+                        } else {
+                            append(it.url)
+                        }
+                        if (it.hasPwd == 1) {
+                            append("\n")
+                            append(it.pwd)
+                        }
+                        if (index != lanzouFiles.size - 1) {
+                            append("\n")
+                        }
+                    }
+                }
+                toString()
+            }
+            if (clipboardManager != null) {
+                clipboardManager.setPrimaryClip(ClipData.newPlainText("urls", content))
+                "${count}个文件分享地址已复制".showToast()
+            } else {
+                val intent = content.getTextIntent()
+                startActivity(Intent.createChooser(intent, "分享到"))
+            }
+        }
     }
 
-    private fun Fragment.shareFile(lanzouFile: LanzouFile, clipboardManager: ClipboardManager) {
+    private fun Fragment.shareFile(
+        lanzouFile: LanzouFile,
+        clipboardManager: ClipboardManager? = null
+    ) {
         lifecycleScope.launch {
             val result = withContext(Dispatchers.IO) {
                 LanzouRepository.getFileInfo(lanzouFile.fileId)
@@ -256,8 +336,13 @@ object FileActionHelper {
                 if (it.hasPwd == 1) {
                     url += "\n密码: " + it.pwd
                 }
-                clipboardManager.setPrimaryClip(ClipData.newPlainText("url", url))
-                "分享地址已复制".showToast()
+                if (clipboardManager != null) {
+                    clipboardManager.setPrimaryClip(ClipData.newPlainText("url", url))
+                    "分享地址已复制".showToast()
+                } else {
+                    val intent = url.getTextIntent()
+                    startActivity(Intent.createChooser(intent, "分享到"))
+                }
             }
         }
     }
@@ -314,7 +399,7 @@ object FileActionHelper {
         )
     }
 
-    private fun Fragment.shareFolder(lanzouPage: LanzouPage, clipboardManager: ClipboardManager) {
+    private fun Fragment.shareFolder(lanzouPage: LanzouPage, clipboardManager: ClipboardManager? = null) {
         lifecycleScope.launch {
             val result = withContext(Dispatchers.IO) {
                 LanzouRepository.getFolder(lanzouPage.folderId)
@@ -324,8 +409,13 @@ object FileActionHelper {
                 if (it.hasPwd == 1) {
                     url += "\n密码: " + it.pwd
                 }
-                clipboardManager.setPrimaryClip(ClipData.newPlainText("url", url))
-                "分享地址已复制".showToast()
+                if (clipboardManager != null) {
+                    clipboardManager.setPrimaryClip(ClipData.newPlainText("url", url))
+                    "分享地址已复制".showToast()
+                } else {
+                    val intent = url.getTextIntent()
+                    startActivity(Intent.createChooser(intent, "分享到"))
+                }
             }.onFailure {
                 it.message.showToast()
             }

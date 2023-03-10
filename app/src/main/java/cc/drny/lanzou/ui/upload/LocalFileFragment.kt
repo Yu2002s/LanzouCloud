@@ -82,7 +82,7 @@ class LocalFileFragment : BaseSuperFragment(), MenuProvider, FileFilterable, Scr
         isShowFab = navController.currentDestination!!.id == R.id.uploadFileFragment
         fileSelectorAdapter.onItemClickListener =
             object : OnItemClickListener<FileInfo, ViewBinding> {
-                override fun onItemClick(data: FileInfo, v: View) {
+                override fun onItemClick(position: Int, data: FileInfo, binding: ViewBinding) {
                     if (data.extension == null) {
                         findNavController().navigate(
                             LocalFileFragmentDirections
@@ -91,7 +91,7 @@ class LocalFileFragment : BaseSuperFragment(), MenuProvider, FileFilterable, Scr
                         return
                     }
                     data.isSelected = !data.isSelected
-                    (v as MaterialCardView).isChecked = data.isSelected
+                    (binding.root as MaterialCardView).isChecked = data.isSelected
                     if (data.isSelected) {
                         // add
                         Log.d("jdy", "add")
@@ -132,9 +132,7 @@ class LocalFileFragment : BaseSuperFragment(), MenuProvider, FileFilterable, Scr
             binding.progressBar.isInvisible = true
             files.clear()
             files.addAll(it)
-            fileSelectorAdapter.notifyDataSetChanged()
-            binding.fileRecyclerView.scheduleLayoutAnimation()
-
+            fileSelectorAdapter.notifyData()
             fileSelectorAdapter.update()
         }
 

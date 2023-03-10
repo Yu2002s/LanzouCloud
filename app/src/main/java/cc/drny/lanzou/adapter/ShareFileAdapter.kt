@@ -7,7 +7,7 @@ import cc.drny.lanzou.R
 import cc.drny.lanzou.data.lanzou.LanzouShareFile
 import cc.drny.lanzou.databinding.ItemListFileBinding
 
-class ShareFileAdapter(files: List<LanzouShareFile>) :
+class ShareFileAdapter(files: MutableList<LanzouShareFile>) :
     BaseAdapter<LanzouShareFile, ItemListFileBinding>(files) {
 
     override fun onCreateBinding(parent: ViewGroup, viewType: Int): ItemListFileBinding {

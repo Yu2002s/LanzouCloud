@@ -36,21 +36,18 @@ class ClassificationFragment : Fragment(), FileFilterable {
 
     private val titles = arrayOf("最近", "软件", "图片", "压缩包", "安装包", "视频", "文档")
 
-    private val fragments = mutableListOf<UploadSelectorFragment>()
+    private val fragments = types.map { UploadSelectorFragment.newInstance(it) } as MutableList
 
     private lateinit var adapter: MyAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        fragments.addAll(types.map { UploadSelectorFragment.newInstance(it) })
         if (savedInstanceState != null) {
-           // Log.d("jdy", "size: "+ childFragmentManager.fragments.size)
             childFragmentManager.fragments.forEach { old ->
                 val oldType = old.requireArguments().getInt("type")
                 fragments.forEachIndexed { index, new ->
                     val newType = new.requireArguments().getInt("type")
                     if (newType == oldType) {
-                       // Log.d("jdy", "index: $index")
                         fragments[index] = old as UploadSelectorFragment
                     }
                 }

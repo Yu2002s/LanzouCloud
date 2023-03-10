@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.recyclerview.widget.RecyclerView
+import cc.drny.lanzou.adapter.BaseAdapter
 import cc.drny.lanzou.adapter.FileAdapter
 import cc.drny.lanzou.data.download.Download
 import cc.drny.lanzou.data.lanzou.LanzouFile
@@ -35,6 +36,10 @@ class FileViewModel(private val lanzouPage: LanzouPage) : ViewModel() {
         }
     }
 
+    var key: String = ""
+
+    val keyLiveData = MutableLiveData<String>()
+
     /**
      * 加载状态
      */
@@ -57,6 +62,9 @@ class FileViewModel(private val lanzouPage: LanzouPage) : ViewModel() {
     @SuppressLint("NotifyDataSetChanged")
     fun getFiles(rv: RecyclerView) {
         if (!isFirst) {
+            if (key.isNotEmpty()) {
+                (rv.adapter as FileAdapter).filter()
+            }
             return
         }
         isFirst = false

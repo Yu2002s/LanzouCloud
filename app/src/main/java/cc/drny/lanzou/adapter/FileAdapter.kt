@@ -9,7 +9,7 @@ import cc.drny.lanzou.databinding.ItemListFileBinding
 import cc.drny.lanzou.databinding.ItemListFolderBinding
 import com.google.android.material.card.MaterialCardView
 
-class FileAdapter(files: List<LanzouFile>) : BaseAdapter<LanzouFile, ViewBinding>(files) {
+class FileAdapter(files: MutableList<LanzouFile>) : BaseAdapter<LanzouFile, ViewBinding>(files) {
 
     companion object {
         private const val TYPE_FILE = 0

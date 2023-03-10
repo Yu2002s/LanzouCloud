@@ -5,6 +5,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.view.View
+import android.widget.Toast
 import androidx.core.view.updatePadding
 import androidx.navigation.fragment.findNavController
 import androidx.preference.EditTextPreference
@@ -12,6 +13,7 @@ import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import cc.drny.lanzou.R
 import cc.drny.lanzou.data.lanzou.LanzouShareFile
+import cc.drny.lanzou.util.ALiPayUtils
 import cc.drny.lanzou.util.dp2px
 import cc.drny.lanzou.util.getNavigationBarHeight
 import cc.drny.lanzou.util.showToast
@@ -63,6 +65,12 @@ class SettingFragment: PreferenceFragmentCompat() {
                 setPositiveButton("关闭", null)
                 show()
             }
+            true
+        }
+
+        findPreference<Preference>("donation")?.setOnPreferenceClickListener {
+            Toast.makeText(requireContext(), "感谢你的支持!", Toast.LENGTH_LONG).show()
+            ALiPayUtils.startAlipayClient()
             true
         }
     }

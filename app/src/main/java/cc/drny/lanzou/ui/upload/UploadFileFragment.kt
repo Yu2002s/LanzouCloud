@@ -21,10 +21,15 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.navGraphViewModels
+import androidx.preference.PreferenceManager
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import androidx.viewpager2.widget.ViewPager2.OnPageChangeCallback
 import cc.drny.lanzou.R
+import cc.drny.lanzou.adapter.BaseAdapter
 import cc.drny.lanzou.base.BaseFragment
+import cc.drny.lanzou.base.BaseUploadFragment
+import cc.drny.lanzou.data.lanzou.LanzouFile
+import cc.drny.lanzou.data.lanzou.LanzouPage
 import cc.drny.lanzou.databinding.ContentToolbarUploadBinding
 import cc.drny.lanzou.databinding.FragmentAndroidDataBinding
 import cc.drny.lanzou.databinding.FragmentUploadFileBinding
@@ -35,7 +40,7 @@ import com.google.android.material.button.MaterialButton
 import com.google.android.material.radiobutton.MaterialRadioButton
 import kotlinx.coroutines.launch
 
-class UploadFileFragment : BaseFragment(), MenuProvider {
+class UploadFileFragment : BaseUploadFragment(), MenuProvider {
 
     private var _binding: FragmentUploadFileBinding? = null
     private val binding get() = _binding!!
@@ -44,6 +49,8 @@ class UploadFileFragment : BaseFragment(), MenuProvider {
     private val toolbarBinding get() = _toolbarBinding!!
 
     private val fragments = mutableListOf<Fragment>()
+    private val viewModel by navGraphViewModels<UploadSelectorViewModel>(R.id.uploadFileFragment)
+    private val uploadViewModel by navGraphViewModels<UploadViewModel>(R.id.fileFragment)
 
     private lateinit var adapter: MyAdapter
 
@@ -87,8 +94,6 @@ class UploadFileFragment : BaseFragment(), MenuProvider {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        Log.d("jdy", "size: " + fragments.toString())
-
         adapter = MyAdapter()
         binding.viewpager2.adapter = adapter
         binding.viewpager2.isUserInputEnabled = false
@@ -111,9 +116,10 @@ class UploadFileFragment : BaseFragment(), MenuProvider {
 
     override fun onCreateMenu(p0: Menu, p1: MenuInflater) {
         p1.inflate(R.menu.menu_upload_file, p0)
-        val searchView = p0.findItem(R.id.search_file).actionView as SearchView
+        val searchItem = p0.findItem(R.id.search_file)
+        val searchView = searchItem.actionView as SearchView
         searchView.setOnQueryTextListener(object : OnQueryTextListener {
-            override fun onQueryTextChange(newText: String?): Boolean {
+            override fun onQueryTextChange(newText: String): Boolean {
                 val target = fragments[binding.viewpager2.currentItem]
                 if (target is FileFilterable) {
                     target.onFilter(newText)
@@ -133,12 +139,41 @@ class UploadFileFragment : BaseFragment(), MenuProvider {
                 true
             }
            R.id.upload_file -> {
-               findNavController().navigate(
-                   UploadFileFragmentDirections.actionUploadFileFragmentToUploadFileDialogFragment()
-               )
+               val preferences =
+                   PreferenceManager.getDefaultSharedPreferences(requireContext())
+               val quickUpload = preferences.getBoolean("quick_upload", false)
+               if (quickUpload) {
+                   uploadFile()
+               } else {
+                   findNavController().navigate(
+                       UploadFileFragmentDirections.actionUploadFileFragmentToUploadFileDialogFragment()
+                   )
+               }
                true
            }
            else -> false
+        }
+    }
+
+    private fun uploadFile() {
+        val navController = findNavController()
+        val fileFragment = navController.getBackStackEntry(R.id.fileFragment)
+        val lanzouPage = fileFragment.arguments?.getParcelable<LanzouPage>("lanzouPage")
+        lanzouPage?.let {
+            val id = it.folderId
+            val name = it.name
+            val selectedList = viewModel.selectedList
+            selectedList.forEachIndexed { index, fileInfo ->
+                if (fileInfo.isSelected) {
+                    requireUploadService().addUpload(fileInfo, id, name) { upload ->
+                        upload.icon = fileInfo.icon
+                        uploadViewModel.addUpload(upload)
+                        if (index == selectedList.size - 1) {
+                            navController.navigateUp()
+                        }
+                    }
+                }
+            }
         }
     }
 

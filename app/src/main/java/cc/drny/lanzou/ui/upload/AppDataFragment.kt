@@ -32,7 +32,7 @@ class AppDataFragment: BaseSuperFragment(), FileFilterable, Scrollable {
         super.onCreate(savedInstanceState)
         // fileAdapter.enableAutoLoad().scopeIn(lifecycleScope)
         fileAdapter.onItemClickListener = object : OnItemClickListener<FileInfo, ViewBinding> {
-            override fun onItemClick(data: FileInfo, v: View) {
+            override fun onItemClick(position: Int, data: FileInfo, binding: ViewBinding) {
                 findNavController()
                     .navigate(FileFragmentDirections
                         .actionGlobalAndroidDataFragment(data.path, data.name))

@@ -20,6 +20,7 @@ import cc.drny.lanzou.databinding.ItemListFileSelectorBinding
 import cc.drny.lanzou.event.FileFilterable
 import cc.drny.lanzou.event.OnItemClickListener
 import cc.drny.lanzou.event.Scrollable
+import cc.drny.lanzou.ui.TransmissionFragment
 import com.google.android.material.card.MaterialCardView
 
 class UploadSelectorFragment : BaseSuperFragment(), FileFilterable, Scrollable {
@@ -52,9 +53,9 @@ class UploadSelectorFragment : BaseSuperFragment(), FileFilterable, Scrollable {
         navController = findNavController()
         type = requireArguments().getInt("type", ClassificationFragment.TYPE_FILE)
         selectorAdapter.onItemClickListener = object : OnItemClickListener<FileInfo, ViewBinding> {
-            override fun onItemClick(data: FileInfo, v: View) {
+            override fun onItemClick(position: Int, data: FileInfo, binding: ViewBinding) {
                 data.isSelected = !data.isSelected
-                (v as MaterialCardView).isChecked = data.isSelected
+                (binding.root as MaterialCardView).isChecked = data.isSelected
                 if (data.isSelected) {
                     // add
                     Log.d("jdy", "add")
@@ -117,11 +118,7 @@ class UploadSelectorFragment : BaseSuperFragment(), FileFilterable, Scrollable {
                 binding.progressbar.isInvisible = true
                 list.clear()
                 list.addAll(it)
-
-                selectorAdapter.notifyDataSetChanged()
-
-                binding.selectorRecyclerView.scheduleLayoutAnimation()
-
+                selectorAdapter.notifyData()
                 if (type != ClassificationFragment.TYPE_ZIP) {
                     selectorAdapter.update()
                 }
@@ -150,7 +147,7 @@ class UploadSelectorFragment : BaseSuperFragment(), FileFilterable, Scrollable {
                 val fileInfo = iterator.next()
                 if (!fileInfo.isSelected && fileInfo.type == type) {
                     val index = list.indexOf(fileInfo)
-                    selectorAdapter.updateItem(index, 0)
+                    selectorAdapter.updateItem(index, fileInfo, 0)
                     iterator.remove()
                 }
             }

@@ -17,6 +17,8 @@ import cc.drny.lanzou.service.UploadService
 
 open class BaseUploadFragment : BaseSuperFragment(), ServiceConnection, UploadListener {
 
+    var onlyUpload = false
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         requireContext().bindService(
@@ -31,7 +33,6 @@ open class BaseUploadFragment : BaseSuperFragment(), ServiceConnection, UploadLi
         requireContext().unbindService(this)
         uploadService?.uploadListener = null
         uploadService = null
-        // uploadService!!.removeUploadListener(this)
     }
 
     var uploadService: UploadService? = null
@@ -41,8 +42,10 @@ open class BaseUploadFragment : BaseSuperFragment(), ServiceConnection, UploadLi
 
     override fun onServiceConnected(name: ComponentName?, service: IBinder) {
         uploadService = (service as UploadService.UploadBinder).getService()
+        if (onlyUpload) {
+            return
+        }
         uploadService?.uploadListener = this
-        // uploadService!!.addUploadListener(this)
     }
 
     override fun onServiceDisconnected(name: ComponentName?) {

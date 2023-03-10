@@ -26,8 +26,10 @@ import cc.drny.lanzou.databinding.ItemListUploadBinding
 import cc.drny.lanzou.event.FileFilterable
 import cc.drny.lanzou.event.OnItemClickListener
 import cc.drny.lanzou.event.Scrollable
+import cc.drny.lanzou.ui.TransmissionFragment
 import cc.drny.lanzou.util.enableMenuIcon
 import cc.drny.lanzou.util.openFile
+import cc.drny.lanzou.util.showToast
 import kotlinx.coroutines.launch
 
 class UploadFragment: BaseUploadFragment(), FileFilterable, Scrollable {
@@ -44,25 +46,26 @@ class UploadFragment: BaseUploadFragment(), FileFilterable, Scrollable {
         super.onCreate(savedInstanceState)
         uploadAdapter.enableAutoLoad().scopeIn(lifecycleScope)
         uploadAdapter.uploadControlListener = object : OnItemClickListener<Upload, ItemListUploadBinding> {
-            override fun onItemClick(data: Upload, v: View) {
+            override fun onItemClick(position: Int, data: Upload, binding: ItemListUploadBinding) {
                 requireUploadService().switchUpload(data)
             }
         }
         uploadAdapter.onItemClickListener = object : OnItemClickListener<Upload, ItemListUploadBinding> {
-            override fun onItemClick(data: Upload, v: View) {
-                val popupMenu = PopupMenu(requireContext(), v, Gravity.END)
+            override fun onItemClick(position: Int, data: Upload, binding: ItemListUploadBinding) {
+                val popupMenu = PopupMenu(requireContext(), binding.root, Gravity.END)
                 popupMenu.inflate(R.menu.menu_action_transmission)
                 popupMenu.menu.enableMenuIcon()
                 popupMenu.show()
                 popupMenu.setOnMenuItemClickListener {
+                    "还没做".showToast()
                     when (it.itemId) {
                         R.id.open_file -> {
                             data.path.openFile()
                         }
                         R.id.delete_file -> {
-                            lifecycleScope.launch {
+                            /*lifecycleScope.launch {
                                 // 删除队列
-                            }
+                            }*/
                         }
                     }
                     true
@@ -83,6 +86,10 @@ class UploadFragment: BaseUploadFragment(), FileFilterable, Scrollable {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        if (parentFragment is TransmissionFragment) {
+            uploadAdapter.searchKeyWord = (parentFragment as TransmissionFragment).searchKey
+        }
+
         binding.uploadRecyclerView.apply {
             layoutManager = LinearLayoutManager(requireContext())
             adapter = uploadAdapter
@@ -91,11 +98,17 @@ class UploadFragment: BaseUploadFragment(), FileFilterable, Scrollable {
         uploadViewModel.getUploadList().observe(viewLifecycleOwner) {
             uploadList.clear()
             uploadList.addAll(it)
-            uploadAdapter.notifyDataSetChanged()
-            binding.uploadRecyclerView.scheduleLayoutAnimation()
+            uploadAdapter.notifyData()
             uploadAdapter.update()
         }
+    }
 
+    override fun onResume() {
+        super.onResume()
+        val current = (parentFragment as TransmissionFragment).searchKey
+        if (uploadAdapter.searchKeyWord != current) {
+            onFilter(current)
+        }
     }
 
     override fun onFilter(key: String?) {
@@ -121,19 +134,8 @@ class UploadFragment: BaseUploadFragment(), FileFilterable, Scrollable {
                 if (index != -1) {
                     // 这里进行更新
                     uploadAdapter.updateItem(index, uploadState.upload.status)
-                } else {
-
                 }
             }
-            /*is Error -> {
-                // 上传失败
-            }*/
-            /*is Completed -> {
-                // 上传完成了，一般要进行刷新一下
-            }*/
-            /*is Stop -> {
-
-            }*/
         }
     }
 

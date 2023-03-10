@@ -160,6 +160,13 @@ fun File.getIntent(action: String = Intent.ACTION_VIEW): Intent {
     return intent
 }
 
+fun String.getTextIntent(): Intent {
+    val intent = Intent(Intent.ACTION_SEND)
+    intent.putExtra(Intent.EXTRA_TEXT, this)
+    intent.type = "text/plain"
+    return intent
+}
+
 fun List<File>.getIntent(action: String = Intent.ACTION_SEND_MULTIPLE): Intent {
     val intent = Intent(action)
     intent.addCategory(Intent.CATEGORY_DEFAULT)

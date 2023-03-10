@@ -102,9 +102,9 @@ class UploadFileDialogFragment : BottomSheetDialogFragment(), ServiceConnection 
             }
             selectorAdapter.onItemClickListener =
                 object : OnItemClickListener<FileInfo, ViewBinding> {
-                    override fun onItemClick(data: FileInfo, v: View) {
+                    override fun onItemClick(position: Int, data: FileInfo, binding: ViewBinding) {
                         data.isSelected = !data.isSelected
-                        (v as MaterialCardView).isChecked = data.isSelected
+                        (binding.root as MaterialCardView).isChecked = data.isSelected
                     }
                 }
             adapter = selectorAdapter
@@ -159,7 +159,6 @@ class UploadFileDialogFragment : BottomSheetDialogFragment(), ServiceConnection 
                 if (fileInfo.isSelected) {
                     fileInfo.isSelected = false
                     uploadService!!.addUpload(fileInfo, folderId, folderName) { upload ->
-                        Log.d("jdy", "upload: $fileInfo")
                         upload.icon = fileInfo.icon
                         uploadViewModel.addUpload(upload)
                     }

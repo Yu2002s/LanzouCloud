@@ -13,7 +13,8 @@ import cc.drny.lanzou.util.FileUtils.toSize
 import cc.drny.lanzou.util.getIcon
 import cc.drny.lanzou.util.getIconForExtension
 
-class DownloadAdapter(private val list: List<Download>) : BaseAdapter<Download, ItemListDownloadBinding>(list) {
+class DownloadAdapter(private val list: MutableList<Download>) :
+    BaseAdapter<Download, ItemListDownloadBinding>(list) {
 
     var downloadControlListener: OnItemClickListener<Download, ItemListDownloadBinding>? = null
 
@@ -24,7 +25,11 @@ class DownloadAdapter(private val list: List<Download>) : BaseAdapter<Download, 
     override fun onViewHolderCreated(holder: ViewHolder<ItemListDownloadBinding>) {
         holder.viewBinding.btnControlDownload.setOnClickListener {
             it.isSelected = !it.isSelected
-            downloadControlListener!!.onItemClick(list[holder.adapterPosition], it)
+            downloadControlListener!!.onItemClick(
+                holder.adapterPosition,
+                list[holder.adapterPosition],
+                holder.viewBinding
+            )
         }
         holder.viewBinding.cbDownload.setOnClickListener {
             val data = list[holder.adapterPosition]
@@ -56,7 +61,7 @@ class DownloadAdapter(private val list: List<Download>) : BaseAdapter<Download, 
             binding.progressHorizontal.progress = data.progress
         }
 
-         binding.tvFileStatus.text = data.getStatusStr()
+        binding.tvFileStatus.text = data.getStatusStr()
     }
 
     override fun isLoad(data: Download) = data.icon == null

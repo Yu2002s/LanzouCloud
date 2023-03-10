@@ -175,9 +175,6 @@ class UploadService : Service() {
         } else {
             throw IllegalStateException("上传出错了")
         }
-        /*if (isUri) {
-            file.delete()
-        }*/
     }
 
     /**

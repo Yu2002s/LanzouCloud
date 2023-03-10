@@ -53,15 +53,16 @@ class RecycleBinFragment : BaseSuperFragment(), MenuProvider {
             viewModel.selectedCount = value
         }
 
+    private lateinit var searchView: SearchView
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         fileAdapter.onItemClickListener = object : OnItemClickListener<LanzouFile, ViewBinding> {
-            override fun onItemClick(position: Int, v: View) {
-                val lanzouFile = lanzouFiles[position]
+            override fun onItemClick(position: Int, data: LanzouFile, binding: ViewBinding) {
                 if (isMultiMode) {
-                    lanzouFile.isSelected = !lanzouFile.isSelected
-                    (v as MaterialCardView).isChecked = lanzouFile.isSelected
-                    if (lanzouFile.isSelected) {
+                    data.isSelected = !data.isSelected
+                    (binding.root as MaterialCardView).isChecked = data.isSelected
+                    if (data.isSelected) {
                         selectedCount ++
                     } else {
                         selectedCount --
@@ -71,19 +72,22 @@ class RecycleBinFragment : BaseSuperFragment(), MenuProvider {
                     }
                     return
                 }
-                showPopupMenu(v, lanzouFile, position)
+                showPopupMenu(binding.root, data, position)
             }
         }
         fileAdapter.onItemLongClickListener =
             object : OnItemLongClickListener<LanzouFile, ViewBinding> {
-                override fun onItemLongClick(position: Int, v: View) {
-                    val lanzouFile = lanzouFiles[position]
-                    if (lanzouFile.isSelected) {
-                        showPopupMenu(v, lanzouFile, position)
+                override fun onItemLongClick(
+                    data: LanzouFile,
+                    position: Int,
+                    binding: ViewBinding
+                ) {
+                    if (data.isSelected) {
+                        showPopupMenu(binding.root, data, position)
                     } else {
                         selectedCount ++
-                        lanzouFile.isSelected = true
-                        (v as MaterialCardView).isChecked = true
+                        data.isSelected = true
+                        (binding.root as MaterialCardView).isChecked = true
                         if (!isMultiMode) {
                             isMultiMode = true
                         }
@@ -96,17 +100,10 @@ class RecycleBinFragment : BaseSuperFragment(), MenuProvider {
         p0.enableMenuIcon()
         p1.inflate(R.menu.menu_recycle_action, p0)
 
-        val searchView = p0.findItem(R.id.search_file).actionView as SearchView
-        searchView.setOnQueryTextListener(object : OnQueryTextListener {
-            override fun onQueryTextChange(newText: String?): Boolean {
-                fileAdapter.filter.filter(newText)
-                return false
-            }
-
-            override fun onQueryTextSubmit(query: String?): Boolean {
-                return false
-            }
-        })
+        val searchItem = p0.findItem(R.id.search_file)
+        searchView = searchItem.actionView as SearchView
+        fileAdapter.restoreSearchKey(searchItem)
+        fileAdapter.bindSearchView(p0, R.id.search_file)
     }
 
     @SuppressLint("NotifyDataSetChanged")
@@ -143,14 +140,17 @@ class RecycleBinFragment : BaseSuperFragment(), MenuProvider {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        requireActivity().addMenuProvider(this, viewLifecycleOwner)
         _binding = FragmentRecycleBinBinding.inflate(inflater, container, false)
+
+        addMenuProvider(this)
         return binding.root
     }
 
     @SuppressLint("NotifyDataSetChanged")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        fileAdapter.getSavedSearchKey(savedInstanceState)
 
         binding.fileRecyclerView.apply {
             layoutManager = StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL)
@@ -162,7 +162,7 @@ class RecycleBinFragment : BaseSuperFragment(), MenuProvider {
             result.onSuccess {
                 lanzouFiles.clear()
                 lanzouFiles.addAll(it)
-                fileAdapter.notifyDataSetChanged()
+                fileAdapter.notifyData()
                 binding.fileRecyclerView.scheduleLayoutAnimation()
             }.onFailure {
                 it.message.showToast()
@@ -181,6 +181,12 @@ class RecycleBinFragment : BaseSuperFragment(), MenuProvider {
         }
     }
 
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        fileAdapter.putSearchKey(outState)
+        searchView.setOnQueryTextListener(null)
+    }
+
     private fun cancelMultiMode() {
         selectedCount = 0
         lanzouFiles.forEachIndexed { index, lanzouFile ->
@@ -195,6 +201,7 @@ class RecycleBinFragment : BaseSuperFragment(), MenuProvider {
         val popupMenu = PopupMenu(requireContext(), view, Gravity.END)
         popupMenu.inflate(R.menu.menu_recycle_action)
         popupMenu.menu.enableMenuIcon()
+        popupMenu.menu.removeItem(R.id.search_file)
         popupMenu.show()
         popupMenu.setOnMenuItemClickListener {
             if (lanzouFile.isSelected) {
@@ -281,6 +288,5 @@ class RecycleBinFragment : BaseSuperFragment(), MenuProvider {
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
-        requireActivity().removeMenuProvider(this)
     }
 }

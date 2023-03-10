@@ -12,7 +12,8 @@ import cc.drny.lanzou.event.OnItemClickListener
 import cc.drny.lanzou.util.FileUtils.toSize
 import cc.drny.lanzou.util.getIconForExtension
 
-class UploadAdapter(private val uploadList: List<Upload>): BaseAdapter<Upload, ItemListUploadBinding>(uploadList) {
+class UploadAdapter(private val uploadList: MutableList<Upload>) :
+    BaseAdapter<Upload, ItemListUploadBinding>(uploadList) {
 
     var uploadControlListener: OnItemClickListener<Upload, ItemListUploadBinding>? = null
 
@@ -31,7 +32,11 @@ class UploadAdapter(private val uploadList: List<Upload>): BaseAdapter<Upload, I
     override fun onViewHolderCreated(holder: ViewHolder<ItemListUploadBinding>) {
         holder.viewBinding.btnControlUpload.setOnClickListener {
             it.isSelected = !it.isSelected
-            uploadControlListener!!.onItemClick(uploadList[holder.adapterPosition], it)
+            uploadControlListener!!.onItemClick(
+                holder.adapterPosition,
+                uploadList[holder.adapterPosition],
+                holder.viewBinding
+            )
         }
     }
 

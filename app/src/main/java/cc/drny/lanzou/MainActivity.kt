@@ -41,6 +41,8 @@ import cc.drny.lanzou.util.showToast
 import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.appbar.CollapsingToolbarLayout
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.journeyapps.barcodescanner.ScanContract
+import com.journeyapps.barcodescanner.ScanOptions
 import com.permissionx.guolindev.PermissionX
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -100,10 +102,14 @@ class MainActivity : AppCompatActivity(), ServiceConnection {
 
         getIntentData(intent)
 
-        val data = mutableListOf("111", "222")
-        Test(data).test()
+       /* val register = registerForActivityResult(ScanContract()) {
 
-        Log.d("jdy", "data: $data")
+        }
+        val scanOptions = ScanOptions()
+        scanOptions.apply {
+            setOrientationLocked(true)
+        }
+        register.launch(scanOptions)*/
     }
 
     fun appBar() = binding.appBar

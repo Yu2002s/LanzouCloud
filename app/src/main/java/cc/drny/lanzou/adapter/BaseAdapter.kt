@@ -2,14 +2,20 @@ package cc.drny.lanzou.adapter
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.os.Bundle
+import android.util.Log
 import android.view.Menu
+import android.view.MenuItem
 import android.view.ViewGroup
 import android.widget.Filter
 import android.widget.Filterable
+import androidx.annotation.IdRes
 import androidx.annotation.MenuRes
+import androidx.annotation.RestrictTo
 import androidx.appcompat.widget.SearchView
 import androidx.appcompat.widget.SearchView.OnQueryTextListener
 import androidx.lifecycle.LifecycleCoroutineScope
+import androidx.lifecycle.SavedStateHandle
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.OnScrollListener
@@ -21,13 +27,14 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-abstract class BaseAdapter<T, V : ViewBinding>(private var mFilterData: List<T>) :
+abstract class BaseAdapter<T : Any, V : ViewBinding>(private var mFilterData: MutableList<T>) :
     RecyclerView.Adapter<BaseAdapter.ViewHolder<V>>(), Filterable {
 
     private val mSource = mFilterData
 
     companion object {
         const val NOTIFY_KEY = 0x01
+        const val SEARCH_KEY = "search_key"
     }
 
     var onItemClickListener: OnItemClickListener<T, V>? = null
@@ -47,6 +54,8 @@ abstract class BaseAdapter<T, V : ViewBinding>(private var mFilterData: List<T>)
 
     fun getList() = mFilterData
 
+    fun isSearch() = searchKeyWord.isNotBlank()
+
     fun enableAutoLoad(): BaseAdapter<T, V> {
         enableAutoLoad = true
         return this
@@ -59,6 +68,7 @@ abstract class BaseAdapter<T, V : ViewBinding>(private var mFilterData: List<T>)
 
     @SuppressLint("NotifyDataSetChanged")
     fun notifyData() {
+        Log.d("jdy", "searchKey: $searchKeyWord")
         if (searchKeyWord.isNotEmpty()) {
             filter(searchKeyWord)
         } else {
@@ -71,18 +81,67 @@ abstract class BaseAdapter<T, V : ViewBinding>(private var mFilterData: List<T>)
 
     fun isFilterData() = mFilterData.size != mSource.size
 
-    fun bindSearchView(menu: Menu, @MenuRes resId: Int) {
+    fun bindSearchView(menu: Menu, @IdRes resId: Int) {
         val searchView = menu.findItem(resId).actionView as SearchView
         searchView.setOnQueryTextListener(object : OnQueryTextListener {
             override fun onQueryTextChange(newText: String?): Boolean {
                 getFilter().filter(newText)
-                return false
+                return true
             }
 
             override fun onQueryTextSubmit(query: String?): Boolean {
                 return false
             }
         })
+    }
+
+    /**
+     * 删除具体条目
+     */
+    fun removeSimpleItem(position: Int) {
+        mFilterData.removeAt(position)
+        notifyItemRemoved(position)
+    }
+
+    fun removeItems(position: Int, data: T = mSource[position]): Int {
+        var index = position
+        mSource.removeAt(position)
+        if (isFilterData()) {
+            index = mFilterData.indexOf(data)
+            if (index == -1) return -1
+            mFilterData.removeAt(index)
+        }
+        notifyItemRemoved(index)
+        return index
+    }
+
+    fun addItem(position: Int, data: T) {
+        mSource.add(position, data)
+        if (isFilterData()) {
+            mFilterData.add(position, data)
+        }
+        notifyItemInserted(position)
+    }
+
+    fun addItem(data: T) {
+        addItem(0, data)
+    }
+
+    fun updateItem(position: Int, type: Int, data: T = mFilterData[position]) {
+        updateItem(position, data, type)
+    }
+
+    fun updateItem(position: Int, data: T = mFilterData[position], type: Int = getNotifyKeyNonNull(data)) {
+        notifyItemChanged(position, type)
+    }
+
+    fun updateItems(position: Int, data: T = mSource[position], type: Int = getNotifyKeyNonNull(data)) {
+        var index = position
+        if (isFilterData()) {
+            index = mFilterData.indexOf(data)
+        }
+        if (index == -1) return
+        notifyItemChanged(index, type)
     }
 
     class ViewHolder<V : ViewBinding>(val viewBinding: V) :
@@ -103,7 +162,10 @@ abstract class BaseAdapter<T, V : ViewBinding>(private var mFilterData: List<T>)
         val lm = recyclerView.layoutManager
         if (lm is LinearLayoutManager) {
             val first = lm.findFirstVisibleItemPosition()
-            val last = lm.findLastVisibleItemPosition()
+            var last = lm.findLastVisibleItemPosition()
+            if (last > mFilterData.size - 1) {
+                last = mFilterData.size - 1
+            }
             if (first == -1 || last == -1) return
             for (i in first..last) {
                 val bean = mFilterData[i]
@@ -126,12 +188,25 @@ abstract class BaseAdapter<T, V : ViewBinding>(private var mFilterData: List<T>)
         }, 500)
     }
 
-    /**
-     * 删除具体条目
-     */
-    fun removeItem(position: Int) {
-        (mFilterData as MutableList).removeAt(position)
-        notifyItemRemoved(position)
+    fun restoreSearchKey(item: MenuItem) {
+        Log.d("jdy", "search: " +  searchKeyWord)
+        if (isSearch()) {
+            item.expandActionView()
+            val actionView = item.actionView
+            if (actionView is SearchView) {
+                actionView.setQuery(searchKeyWord, false)
+            }
+        }
+    }
+
+    fun getSavedSearchKey(savedStateBundle: Bundle?) {
+        savedStateBundle?.let {
+            searchKeyWord = it.getString(SEARCH_KEY, "")
+        }
+    }
+
+    fun putSearchKey(savedStateBundle: Bundle?) {
+        savedStateBundle?.putString(SEARCH_KEY, searchKeyWord)
     }
 
     /**
@@ -143,19 +218,6 @@ abstract class BaseAdapter<T, V : ViewBinding>(private var mFilterData: List<T>)
         } else {
             index
         }
-    }
-
-    /**
-     * 得到真实的数据（未搜索时的数据）
-     */
-    fun getDataBean(index: Int): DataBean<T> {
-        var position = index
-        var data = mFilterData[position]
-        if (isFilterData()) {
-            position = mSource.indexOf(data)
-            data = mSource[position]
-        }
-        return DataBean(position, data)
     }
 
     override fun onAttachedToRecyclerView(recyclerView: RecyclerView) {
@@ -178,22 +240,16 @@ abstract class BaseAdapter<T, V : ViewBinding>(private var mFilterData: List<T>)
         val viewHolder = ViewHolder(binding)
         onItemClickListener?.let {
             binding.root.setOnClickListener { v ->
-                //val dataBean = getDataBean(viewHolder.adapterPosition)
                 val position = viewHolder.adapterPosition
                 val data = mFilterData[position]
-                it.onItemClick(data, v)
-                it.onItemClick(position, v)
-                it.onItemClick(data, binding)
+                it.onItemClick(position, data, binding)
             }
         }
         onItemLongClickListener?.let {
             binding.root.setOnLongClickListener { v ->
-                //val dataBean = getDataBean(viewHolder.adapterPosition)
                 val position = viewHolder.adapterPosition
                 val data = mFilterData[position]
-                it.onItemLongClick(position, v)
-                it.onItemLongClick(position, v)
-                it.onItemLongClick(data, binding)
+                it.onItemLongClick(data, position, binding)
                 true
             }
         }
@@ -221,10 +277,13 @@ abstract class BaseAdapter<T, V : ViewBinding>(private var mFilterData: List<T>)
 
     private val filter by lazy {
         object : Filter() {
-            override fun performFiltering(constraint: CharSequence?): FilterResults {
+            override fun performFiltering(constraint: CharSequence?): FilterResults? {
                 searchKeyWord = constraint.toString()
                 val filterResult = FilterResults()
                 if (searchKeyWord.isEmpty()) {
+                    if (mSource == mFilterData) {
+                        return null
+                    }
                     filterResult.values = mSource
                     filterResult.count = mSource.size
                 } else {
@@ -243,10 +302,9 @@ abstract class BaseAdapter<T, V : ViewBinding>(private var mFilterData: List<T>)
             @SuppressLint("NotifyDataSetChanged")
             @Suppress("UNCHECKED_CAST")
             override fun publishResults(constraint: CharSequence?, results: FilterResults?) {
-                mFilterData = results!!.values as MutableList<T>
+                if (results == null) return
+                mFilterData = results.values as MutableList<T>
                 notifyDataSetChanged()
-
-                // Log.d("jdy", "sources: ${mSource.size} , mFilter: ${mFilterData.size}")
 
                 if (::recyclerView.isInitialized) {
                     val runnable = Runnable {
@@ -308,9 +366,5 @@ abstract class BaseAdapter<T, V : ViewBinding>(private var mFilterData: List<T>)
     }
 
     open fun onViewHolderCreated(holder: ViewHolder<V>) {}
-
-    fun updateItem(position: Int, type: Int = getNotifyKeyNonNull(mFilterData[position])) {
-        notifyItemChanged(position, type)
-    }
 
 }

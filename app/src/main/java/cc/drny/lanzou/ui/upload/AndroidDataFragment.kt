@@ -82,7 +82,7 @@ class AndroidDataFragment : BaseSuperFragment(), FileFilterable, MenuProvider, S
         fileAdapter.enableAutoLoad().scopeIn(lifecycleScope)
         fileAdapter.onItemClickListener =
             object : OnItemClickListener<FileInfo, ViewBinding> {
-                override fun onItemClick(data: FileInfo, binding: ViewBinding) {
+                override fun onItemClick(position: Int, data: FileInfo, binding: ViewBinding) {
                     if (binding is ItemListFileSelectorBinding) {
                         data.isSelected = !data.isSelected
                         binding.root.isChecked = data.isSelected

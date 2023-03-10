@@ -10,7 +10,7 @@ import cc.drny.lanzou.databinding.ItemListFileSelectorBinding
 import cc.drny.lanzou.databinding.ItemListFolderBinding
 import cc.drny.lanzou.util.getIconForExtension
 
-class FileSelectorAdapter(files: List<FileInfo>) : BaseAdapter<FileInfo, ViewBinding>(files) {
+class FileSelectorAdapter(files: MutableList<FileInfo>) : BaseAdapter<FileInfo, ViewBinding>(files) {
 
     override fun onCreateBinding(parent: ViewGroup, viewType: Int): ViewBinding {
         val layoutInflater = LayoutInflater.from(parent.context)

@@ -5,6 +5,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.view.*
+import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
 import androidx.core.view.MenuProvider
@@ -17,11 +18,14 @@ import cc.drny.lanzou.LanzouApplication
 import cc.drny.lanzou.R
 import cc.drny.lanzou.adapter.BaseAdapter
 import cc.drny.lanzou.base.BaseFragment
+import cc.drny.lanzou.data.lanzou.LanzouShareFile
 import cc.drny.lanzou.databinding.FragmentUserBinding
 import cc.drny.lanzou.databinding.ItemListGridBinding
 import cc.drny.lanzou.event.OnItemClickListener
 import cc.drny.lanzou.network.LanzouRepository
 import cc.drny.lanzou.util.showToast
+import com.journeyapps.barcodescanner.ScanContract
+import com.journeyapps.barcodescanner.ScanOptions
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -37,10 +41,11 @@ class UserFragment : BaseFragment() {
     private val list =
         mutableListOf(
             mapOf("icon" to R.drawable.baseline_delete_24, "title" to "回收站"),
-            mapOf("icon" to R.drawable.baseline_link_24, "title" to "解析文件")
+            mapOf("icon" to R.drawable.baseline_link_24, "title" to "解析文件"),
+            mapOf("icon" to R.drawable.baseline_qr_code_scanner_24, "title" to "扫一扫")
         )
 
-    private val adapter = MyAdapter()
+    private val adapter = MyAdapter(list.toMutableList())
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -53,22 +58,52 @@ class UserFragment : BaseFragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        adapter.onItemClickListener = object : OnItemClickListener<Map<String, Any>, ItemListGridBinding> {
-            override fun onItemClick(position: Int, v: View) {
-                when (position) {
-                    0 -> {
-                        findNavController().navigate(
-                            UserFragmentDirections.actionUserFragmentToRecycleBinFragment()
-                        )
-                    }
-                    1 -> {
-                        findNavController().navigate(
-                            UserFragmentDirections.actionGlobalAnalyzeFileDialogFragment()
-                        )
+
+        val register = registerForActivityResult(ScanContract()) {
+            val contents = it.contents
+            if (contents.isNullOrEmpty()) return@registerForActivityResult
+            if (!contents.startsWith("https://")) {
+                Toast.makeText(requireContext(), "非分享地址", Toast.LENGTH_SHORT).show()
+                return@registerForActivityResult
+            }
+            findNavController().navigate(
+                UserFragmentDirections
+                    .actionGlobalAnalyzeFileDialogFragment(
+                        arrayOf(LanzouShareFile(contents))
+                    )
+            )
+        }
+
+        adapter.onItemClickListener =
+            object : OnItemClickListener<Map<String, Any>, ItemListGridBinding> {
+                override fun onItemClick(
+                    position: Int,
+                    data: Map<String, Any>,
+                    binding: ItemListGridBinding
+                ) {
+                    when (position) {
+                        0 -> {
+                            findNavController().navigate(
+                                UserFragmentDirections.actionUserFragmentToRecycleBinFragment()
+                            )
+                        }
+                        1 -> {
+                            findNavController().navigate(
+                                UserFragmentDirections.actionGlobalAnalyzeFileDialogFragment()
+                            )
+                        }
+                        2 -> {
+                            val scanOptions = ScanOptions()
+                            scanOptions.apply {
+                                setOrientationLocked(false)
+                                setBeepEnabled(false)
+                                setBarcodeImageEnabled(true)
+                            }
+                            register.launch(scanOptions)
+                        }
                     }
                 }
             }
-        }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -107,10 +142,10 @@ class UserFragment : BaseFragment() {
 
     }
 
-    private inner class MyAdapter :
+    private class MyAdapter(list: MutableList<Map<String, Any>>) :
         BaseAdapter<Map<String, Any>, ItemListGridBinding>(list) {
         override fun onCreateBinding(parent: ViewGroup, viewType: Int): ItemListGridBinding {
-            return ItemListGridBinding.inflate(LayoutInflater.from(parent.context), parent,false)
+            return ItemListGridBinding.inflate(LayoutInflater.from(parent.context), parent, false)
         }
 
         override fun onBindView(data: Map<String, Any>, binding: ItemListGridBinding) {

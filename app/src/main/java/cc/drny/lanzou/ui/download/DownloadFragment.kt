@@ -25,6 +25,7 @@ import cc.drny.lanzou.databinding.ItemListDownloadBinding
 import cc.drny.lanzou.event.FileFilterable
 import cc.drny.lanzou.event.OnItemClickListener
 import cc.drny.lanzou.event.Scrollable
+import cc.drny.lanzou.ui.TransmissionFragment
 import cc.drny.lanzou.util.DateUtils.handleTime
 import cc.drny.lanzou.util.FileUtils.toSize
 import cc.drny.lanzou.util.enableMenuIcon
@@ -54,15 +55,22 @@ class DownloadFragment : BaseDownloadFragment(), FileFilterable, Scrollable {
         downloadAdapter.enableAutoLoad().scopeIn(lifecycleScope)
         downloadAdapter.downloadControlListener =
             object : OnItemClickListener<Download, ItemListDownloadBinding> {
-                override fun onItemClick(data: Download, v: View) {
+                override fun onItemClick(
+                    position: Int,
+                    data: Download,
+                    binding: ItemListDownloadBinding
+                ) {
                     requireDownloadService().switchDownload(data)
                 }
             }
         downloadAdapter.onItemClickListener =
             object : OnItemClickListener<Download, ItemListDownloadBinding> {
-                override fun onItemClick(position: Int, v: View) {
-                    val data = downloadList[position]
-                    showPopupMenu(v, data, position)
+                override fun onItemClick(
+                    position: Int,
+                    data: Download,
+                    binding: ItemListDownloadBinding
+                ) {
+                    showPopupMenu(binding.root, data, position)
                 }
             }
     }
@@ -79,6 +87,8 @@ class DownloadFragment : BaseDownloadFragment(), FileFilterable, Scrollable {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        downloadAdapter.searchKeyWord = (parentFragment as TransmissionFragment).searchKey
+
         binding.downloadRecyclerView.apply {
             layoutManager = LinearLayoutManager(requireContext())
             adapter = downloadAdapter
@@ -94,7 +104,16 @@ class DownloadFragment : BaseDownloadFragment(), FileFilterable, Scrollable {
         }
     }
 
+    override fun onResume() {
+        super.onResume()
+        val current = (parentFragment as TransmissionFragment).searchKey
+        if (downloadAdapter.searchKeyWord != current) {
+            onFilter(current)
+        }
+    }
+
     override fun onFilter(key: String?) {
+        if (downloadAdapter.searchKeyWord == key) return
         downloadAdapter.filter.filter(key)
     }
 
@@ -118,24 +137,20 @@ class DownloadFragment : BaseDownloadFragment(), FileFilterable, Scrollable {
                 }
                 R.id.share_file -> {
                     if (data.isSelected) {
-                        /*val files = mutableListOf<File>()
+                        val files = mutableListOf<File>()
                         downloadList.forEachIndexed { index, download ->
                             if (download.isSelected && download.isCompleted()) {
                                 download.isSelected = false
-                                val p = downloadAdapter.getPosition(index, download)
-                                downloadAdapter.updateItem(p, BaseAdapter.NOTIFY_KEY)
-                                // val d = downloadAdapter.getFilterData()[p]
+                                downloadAdapter.updateItems(index, download, BaseAdapter.NOTIFY_KEY)
                                 files.add(File(download.path))
                             }
                         }
-                        if (files.isNotEmpty()) {
-                            requireContext().startActivity(
-                                Intent.createChooser(
-                                    files.getIntent(),
-                                    "分享${files.size}个文件到"
-                                )
+                        requireContext().startActivity(
+                            Intent.createChooser(
+                                files.getIntent(),
+                                "分享${files.size}个文件到"
                             )
-                        }*/
+                        )
                     } else {
                         if (data.isCompleted()) {
                             val file = File(data.path)
@@ -215,8 +230,7 @@ class DownloadFragment : BaseDownloadFragment(), FileFilterable, Scrollable {
                         if (download.isSelected) {
                             downloadService?.deleteDownload(download) {
                                 downloadViewModel.removeDownload(i)
-                                downloadList.removeAt(i)
-                                downloadAdapter.notifyItemRemoved(i)
+                                downloadAdapter.removeItems(i, download)
                             }
                             if (--count == 0) break
                         }

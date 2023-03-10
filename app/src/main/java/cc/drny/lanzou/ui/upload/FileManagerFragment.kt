@@ -67,7 +67,6 @@ class FileManagerFragment : Fragment(), FileFilterable {
                             val oldPath = old.requireArguments().getString("path")
                             val newPath = new.requireArguments().getString("path")
                             if (oldPath == newPath) {
-                                Log.d("jdy", "index: $index")
                                 fragments[index] = old
                             }
                         } else {

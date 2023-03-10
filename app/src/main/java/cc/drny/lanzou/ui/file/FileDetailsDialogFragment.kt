@@ -8,13 +8,17 @@ import android.view.ViewGroup
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
+import cc.drny.lanzou.R
 import cc.drny.lanzou.databinding.DialogDetailsFileBinding
 import cc.drny.lanzou.network.LanzouRepository
 import cc.drny.lanzou.util.showToast
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
+import com.google.zxing.BarcodeFormat
+import com.journeyapps.barcodescanner.BarcodeEncoder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+
 
 class FileDetailsDialogFragment : BottomSheetDialogFragment() {
 
@@ -56,6 +60,7 @@ class FileDetailsDialogFragment : BottomSheetDialogFragment() {
                         password = lanzouUrl.pwd
                         binding.editDesc.setText(describe)
                         binding.cbPwd.isChecked = lanzouUrl.hasPwd == 1
+                        showQrCode(LanzouRepository.getShareUrl(lanzouUrl))
                     }
                 } else {
                     val result = LanzouRepository.getFolder(args.fileId)
@@ -66,6 +71,7 @@ class FileDetailsDialogFragment : BottomSheetDialogFragment() {
                         desc = lanzouUrl.describe
                         binding.editDesc.setText(lanzouUrl.describe)
                         binding.cbPwd.isChecked = lanzouUrl.hasPwd == 1
+                        showQrCode(lanzouUrl.url)
                     }
                 }
             } catch (e: Throwable) {
@@ -146,6 +152,16 @@ class FileDetailsDialogFragment : BottomSheetDialogFragment() {
                     binding.cbPwd.isChecked = !binding.cbPwd.isChecked
                 }
             }
+        }
+    }
+
+    private fun showQrCode(content: String) {
+        try {
+            val barcodeEncoder = BarcodeEncoder()
+            val bitmap = barcodeEncoder.encodeBitmap(content, BarcodeFormat.QR_CODE, 400, 400)
+            binding.qrCode.setImageBitmap(bitmap)
+        } catch (e: Exception) {
+            binding.qrCode.setImageResource(R.mipmap.ic_launcher)
         }
     }
 

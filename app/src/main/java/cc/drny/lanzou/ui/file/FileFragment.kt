@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.os.IBinder
 import android.view.*
 import androidx.activity.addCallback
+import androidx.appcompat.widget.SearchView
 import androidx.core.view.MenuProvider
 import androidx.core.view.isInvisible
 import androidx.fragment.app.viewModels
@@ -29,6 +30,7 @@ import cc.drny.lanzou.event.OnItemClickListener
 import cc.drny.lanzou.event.OnItemLongClickListener
 import cc.drny.lanzou.service.DownloadService
 import cc.drny.lanzou.ui.download.DownloadViewModel
+import cc.drny.lanzou.util.enableMenuIcon
 import cc.drny.lanzou.util.findLastVisiblePosition
 import com.google.android.material.card.MaterialCardView
 
@@ -56,6 +58,8 @@ class FileFragment : BaseSuperFragment(), ServiceConnection, MenuProvider {
         requireContext().getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
     }
 
+    private var searchView: SearchView? = null
+
     private val isMultiMode
         get() = selectedCount > 0
 
@@ -73,45 +77,6 @@ class FileFragment : BaseSuperFragment(), ServiceConnection, MenuProvider {
             Context.BIND_AUTO_CREATE
         )
         fileAdapter = FileAdapter(lanzouFiles)
-        fileAdapter.onItemClickListener = object : OnItemClickListener<LanzouFile, ViewBinding> {
-            override fun onItemClick(position: Int, v: View) {
-                val lanzouFile = lanzouFiles[position]
-                if (isMultiMode) {
-                    lanzouFile.isSelected = !lanzouFile.isSelected
-                    (v as MaterialCardView).isChecked = lanzouFile.isSelected
-                    if (lanzouFile.isSelected) {
-                        selectedCount++
-                    } else {
-                        selectedCount--
-                    }
-                    return
-                }
-                if (lanzouFile.isFolder()) {
-                    val navController = findNavController()
-                    navController.navigate(
-                        FileFragmentDirections.actionFileFragmentSelf(
-                            LanzouPage(lanzouFile.folderId, lanzouFile.name),
-                            lanzouFile.name
-                        )
-                    )
-                } else {
-                    showFileActionMenu(v, lanzouFile, position)
-                }
-            }
-        }
-        fileAdapter.onItemLongClickListener =
-            object : OnItemLongClickListener<LanzouFile, ViewBinding> {
-                override fun onItemLongClick(position: Int, v: View) {
-                    val lanzouFile = lanzouFiles[position]
-                    if (lanzouFile.isSelected) {
-                        showFileActionMenu(v, lanzouFile, position)
-                    } else {
-                        selectedCount++
-                        lanzouFile.isSelected = true
-                        (v as MaterialCardView).isChecked = true
-                    }
-                }
-            }
     }
 
     override fun onCreateView(
@@ -120,34 +85,17 @@ class FileFragment : BaseSuperFragment(), ServiceConnection, MenuProvider {
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentFileBinding.inflate(inflater, container, false)
-        requireActivity().addMenuProvider(this, viewLifecycleOwner)
+
+        addMenuProvider(this)
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        binding.fileRecyclerView.apply {
-            val gridLayoutManager =
-                StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL)
-            layoutManager = gridLayoutManager
-            adapter = fileAdapter
+        fileAdapter.searchKeyWord = viewModel.key
 
-            addOnScrollListener(object : RecyclerView.OnScrollListener() {
-                override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
-                    val last = recyclerView.findLastVisiblePosition()
-                    if (last >= fileAdapter.itemCount - 6) {
-                        viewModel.loadMore(recyclerView)
-                    }
-                }
-            })
-        }
-
-        binding.root.setOnRefreshListener {
-            selectedCount = 0
-            viewModel.refresh(binding.fileRecyclerView)
-        }
-
+        initView()
         getFiles()
 
         viewModel.uiState.observe(viewLifecycleOwner) {
@@ -171,7 +119,30 @@ class FileFragment : BaseSuperFragment(), ServiceConnection, MenuProvider {
         val navController = findNavController()
         observeLiveData(navController)
         handleBack(navController)
+        initAdapterEvent()
+    }
 
+    private fun initView() {
+        binding.fileRecyclerView.apply {
+            val gridLayoutManager =
+                StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL)
+            layoutManager = gridLayoutManager
+            adapter = fileAdapter
+
+            addOnScrollListener(object : RecyclerView.OnScrollListener() {
+                override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                    val last = recyclerView.findLastVisiblePosition()
+                    if (last >= fileAdapter.itemCount - 6) {
+                        viewModel.loadMore(recyclerView)
+                    }
+                }
+            })
+        }
+
+        binding.root.setOnRefreshListener {
+            selectedCount = 0
+            viewModel.refresh(binding.fileRecyclerView)
+        }
     }
 
     private fun observeLiveData(navController: NavController) {
@@ -199,8 +170,7 @@ class FileFragment : BaseSuperFragment(), ServiceConnection, MenuProvider {
                 for (i in lanzouFiles.size - 1 downTo 0) {
                     val lanzouFile = lanzouFiles[i]
                     if (ids.contains(lanzouFile.fileId)) {
-                        lanzouFiles.removeAt(i)
-                        fileAdapter.notifyItemRemoved(i)
+                        fileAdapter.removeItems(i, lanzouFile)
                         if (--count == 0) {
                             break
                         }
@@ -235,6 +205,50 @@ class FileFragment : BaseSuperFragment(), ServiceConnection, MenuProvider {
         }
     }
 
+    private fun initAdapterEvent() {
+        fileAdapter.onItemClickListener = object : OnItemClickListener<LanzouFile, ViewBinding> {
+            override fun onItemClick(position: Int, data: LanzouFile, binding: ViewBinding) {
+                if (isMultiMode) {
+                    data.isSelected = !data.isSelected
+                    (binding.root as MaterialCardView).isChecked = data.isSelected
+                    if (data.isSelected) {
+                        selectedCount++
+                    } else {
+                        selectedCount--
+                    }
+                    return
+                }
+                if (data.isFolder()) {
+                    val navController = findNavController()
+                    navController.navigate(
+                        FileFragmentDirections.actionFileFragmentSelf(
+                            LanzouPage(data.folderId, data.name),
+                            data.name
+                        )
+                    )
+                } else {
+                    showFileActionMenu(binding.root, data, position)
+                }
+            }
+        }
+        fileAdapter.onItemLongClickListener =
+            object : OnItemLongClickListener<LanzouFile, ViewBinding> {
+                override fun onItemLongClick(
+                    data: LanzouFile,
+                    position: Int,
+                    binding: ViewBinding
+                ) {
+                    if (data.isSelected) {
+                        showFileActionMenu(binding.root, data, position)
+                    } else {
+                        selectedCount++
+                        data.isSelected = true
+                        (binding.root as MaterialCardView).isChecked = true
+                    }
+                }
+            }
+    }
+
     private fun getFiles() {
         viewModel.getFiles(binding.fileRecyclerView)
     }
@@ -242,7 +256,7 @@ class FileFragment : BaseSuperFragment(), ServiceConnection, MenuProvider {
     private fun showFileActionMenu(v: View, lanzouFile: LanzouFile, position: Int) {
         FileActionHelper.showFileActionPopupMenu(
             this, downloadService, downloadViewModel, fileAdapter, lanzouFiles,
-            v, lanzouFile, position, lanzouPage, clipboardManager
+            v, lanzouFile, position, lanzouPage, clipboardManager, searchView
         ) {
             selectedCount = 0
         }
@@ -250,20 +264,28 @@ class FileFragment : BaseSuperFragment(), ServiceConnection, MenuProvider {
 
     private fun cancelMultiMode() {
         selectedCount = 0
-        lanzouFiles.forEachIndexed { index, lanzouFile ->
+        fileAdapter.getList().forEachIndexed { index, lanzouFile ->
             if (lanzouFile.isSelected) {
                 lanzouFile.isSelected = false
-                fileAdapter.updateItem(index, BaseAdapter.NOTIFY_KEY)
+                fileAdapter.updateItem(index, lanzouFile, BaseAdapter.NOTIFY_KEY)
             }
         }
     }
 
     override fun onCreateMenu(p0: Menu, p1: MenuInflater) {
-        FileActionHelper.createSearchMenuItem(p0, p1, fileAdapter)
+        p0.enableMenuIcon()
+        p1.inflate(R.menu.menu_folder_action, p0)
+        val searchItem = p0.findItem(R.id.search_file)
+        searchView = searchItem.actionView as SearchView
+        if (fileAdapter.searchKeyWord.isNotEmpty()) {
+            searchItem.expandActionView()
+            searchView?.setQuery(viewModel.key, false)
+        }
+        FileActionHelper.createSearchMenuItem(searchView, fileAdapter, viewModel)
     }
 
     override fun onMenuItemSelected(p0: MenuItem): Boolean {
-        return FileActionHelper.initMenu(this, p0, lanzouPage, clipboardManager)
+        return FileActionHelper.initMenu(this, p0, lanzouPage, clipboardManager, searchView)
     }
 
     override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
@@ -273,6 +295,12 @@ class FileFragment : BaseSuperFragment(), ServiceConnection, MenuProvider {
     override fun onServiceDisconnected(name: ComponentName?) {
     }
 
+    override fun onStop() {
+        super.onStop()
+        viewModel.key = fileAdapter.searchKeyWord
+        searchView?.setOnQueryTextListener(null)
+    }
+
     override fun onDestroy() {
         super.onDestroy()
         requireContext().unbindService(this)
@@ -280,7 +308,7 @@ class FileFragment : BaseSuperFragment(), ServiceConnection, MenuProvider {
 
     override fun onDestroyView() {
         super.onDestroyView()
+        searchView = null
         _binding = null
-        requireActivity().removeMenuProvider(this)
     }
 }

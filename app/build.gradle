@@ -26,8 +26,8 @@ android {
         applicationId "cc.drny.lanzou"
         minSdk 24
         targetSdk 33
-        versionCode 34
-        versionName "2.0.10"
+        versionCode 36
+        versionName "2.0.12"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         signingConfig signingConfigs.release
@@ -87,7 +87,8 @@ dependencies {
     runtimeOnly 'androidx.documentfile:documentfile:1.0.1'
 
     implementation("androidx.preference:preference-ktx:1.2.0")
-    implementation 'androidx.core:core-ktx:+'
+
+    implementation 'com.journeyapps:zxing-android-embedded:4.3.0'
 
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.3'

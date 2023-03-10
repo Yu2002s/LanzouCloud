@@ -74,12 +74,14 @@ class AnalyzeFileDialogFragment : BottomSheetDialogFragment(), ServiceConnection
 
         shareFileAdapter.onItemClickListener =
             object : OnItemClickListener<LanzouShareFile, ItemListFileBinding> {
-                override fun onItemClick(position: Int, v: View) {
-                    val lanzouShareFile = lanzouShareFiles[position]
-                    binding.editUrl.setText(lanzouShareFile.url)
-                    binding.editPwd.setText(lanzouShareFile.pwd)
-
-                    analyzeFile(lanzouShareFile, position)
+                override fun onItemClick(
+                    position: Int,
+                    data: LanzouShareFile,
+                    binding: ItemListFileBinding
+                ) {
+                    this@AnalyzeFileDialogFragment.binding.editUrl.setText(data.url)
+                    this@AnalyzeFileDialogFragment.binding.editPwd.setText(data.pwd)
+                    analyzeFile(data, position)
                 }
             }
         return binding.root

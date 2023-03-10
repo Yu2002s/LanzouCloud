@@ -38,6 +38,19 @@
     <PreferenceCategory
         app:iconSpaceReserved="false"
         app:allowDividerAbove="false"
+        app:title="上传">
+
+        <SwitchPreferenceCompat
+            app:iconSpaceReserved="false"
+            app:key="quick_upload"
+            app:title="免编辑上传"
+            app:summary="免去编辑环节，直接上传文件"/>
+
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        app:iconSpaceReserved="false"
+        app:allowDividerAbove="false"
         app:title="其他">
 
         <SwitchPreferenceCompat
@@ -76,6 +89,11 @@
             app:title="开源相关"
             app:summary="使用到的一些第三方开源库"/>
 
+        <Preference
+            app:key="donation"
+            app:iconSpaceReserved="false"
+            app:title="捐赠我"
+            app:summary="开发不易，你的支持是我最大的动力"/>
 
     </PreferenceCategory>
 

@@ -93,14 +93,17 @@ class AnalyzeFolderDialogFragment : BottomSheetDialogFragment(), ServiceConnecti
         )
         fileAdapter.onItemLongClickListener =
             object : OnItemLongClickListener<LanzouFile, ViewBinding> {
-                override fun onItemLongClick(position: Int, v: View) {
-                    val lanzouFile = lanzouFiles[position]
-                    if (lanzouFile.isSelected) {
-                        showPopupMenu(lanzouFile, v)
+                override fun onItemLongClick(
+                    data: LanzouFile,
+                    position: Int,
+                    binding: ViewBinding
+                ) {
+                    if (data.isSelected) {
+                        showPopupMenu(data, binding.root)
                     } else {
                         selectedCount++
-                        lanzouFile.isSelected = true
-                        (v as MaterialCardView).isChecked = true
+                        data.isSelected = true
+                        (binding.root as MaterialCardView).isChecked = true
                         if (!isMultiMode) {
                             isMultiMode = true
                         }
@@ -108,12 +111,11 @@ class AnalyzeFolderDialogFragment : BottomSheetDialogFragment(), ServiceConnecti
                 }
             }
         fileAdapter.onItemClickListener = object : OnItemClickListener<LanzouFile, ViewBinding> {
-            override fun onItemClick(position: Int, v: View) {
-                val lanzouFile = lanzouFiles[position]
+            override fun onItemClick(position: Int, data: LanzouFile, binding: ViewBinding) {
                 if (isMultiMode) {
-                    lanzouFile.isSelected = !lanzouFile.isSelected
-                    (v as MaterialCardView).isChecked = lanzouFile.isSelected
-                    if (lanzouFile.isSelected) {
+                    data.isSelected = !data.isSelected
+                    (binding.root as MaterialCardView).isChecked = data.isSelected
+                    if (data.isSelected) {
                         selectedCount++
                     } else {
                         selectedCount--
@@ -123,7 +125,7 @@ class AnalyzeFolderDialogFragment : BottomSheetDialogFragment(), ServiceConnecti
                     }
                     return
                 }
-                showPopupMenu(lanzouFile, v)
+                showPopupMenu(data, binding.root)
             }
         }
     }

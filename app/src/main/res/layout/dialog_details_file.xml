@@ -75,41 +75,47 @@
 
     </com.google.android.material.textfield.TextInputLayout>
 
+    <ImageView
+        android:layout_marginVertical="16dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:id="@+id/qr_code"
+        app:layout_constraintTop_toBottomOf="@id/textInputLayout3"
+        android:layout_width="150dp"
+        android:layout_height="150dp"/>
+
     <com.google.android.material.materialswitch.MaterialSwitch
         android:id="@+id/cb_pwd"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
         android:layout_marginBottom="16dp"
         android:text="文件密码"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="@id/textInputLayout3"
-        app:layout_constraintTop_toBottomOf="@id/textInputLayout3" />
+        app:layout_constraintTop_toBottomOf="@id/qr_code" />
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btn_cancel"
         style="@style/Widget.Material3.Button.TextButton.Dialog.Flush"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:layout_marginBottom="16dp"
         android:text="取消"
+        app:layout_constraintBaseline_toBaselineOf="@id/cb_pwd"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/btn_save"
-        app:layout_constraintTop_toBottomOf="@+id/textInputLayout3" />
+        app:layout_constraintTop_toTopOf="@id/cb_pwd" />
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btn_save"
         style="@style/Widget.Material3.Button.TextButton.Dialog.Flush"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
         android:layout_marginEnd="16dp"
-        android:layout_marginBottom="16dp"
         android:text="保存"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textInputLayout3" />
+        app:layout_constraintBaseline_toBaselineOf="@id/cb_pwd"
+        app:layout_constraintTop_toTopOf="@id/cb_pwd" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>
