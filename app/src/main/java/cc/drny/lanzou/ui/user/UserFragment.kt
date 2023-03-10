@@ -137,7 +137,7 @@ class UserFragment : BaseFragment() {
             }
         }
 
-        binding.actionRecyclerView.layoutManager = GridLayoutManager(requireContext(), 2)
+        binding.actionRecyclerView.layoutManager = GridLayoutManager(requireContext(), 3)
         binding.actionRecyclerView.adapter = adapter
 
     }

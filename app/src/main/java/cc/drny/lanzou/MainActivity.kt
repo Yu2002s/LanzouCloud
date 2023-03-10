@@ -13,9 +13,11 @@ import android.os.*
 import android.util.Log
 import android.util.TypedValue
 import android.view.Gravity
+import android.view.View
 import android.widget.PopupWindow
 import androidx.appcompat.app.ActionBar
 import androidx.appcompat.app.AppCompatActivity
+import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.content.pm.PackageInfoCompat
 import androidx.core.net.toUri
 import androidx.core.view.WindowCompat
@@ -40,6 +42,8 @@ import cc.drny.lanzou.util.getFiles
 import cc.drny.lanzou.util.showToast
 import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.appbar.CollapsingToolbarLayout
+import com.google.android.material.behavior.HideBottomViewOnScrollBehavior
+import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.journeyapps.barcodescanner.ScanContract
 import com.journeyapps.barcodescanner.ScanOptions
@@ -54,20 +58,7 @@ class MainActivity : AppCompatActivity(), ServiceConnection {
     private lateinit var appBarConfiguration: AppBarConfiguration
     private lateinit var binding: ActivityMainBinding
 
-    /**
-     * 自定义标题视图布局参数
-     */
-    private val actionBarLayoutParams = ActionBar.LayoutParams(
-        ActionBar.LayoutParams.MATCH_PARENT,
-        ActionBar.LayoutParams.WRAP_CONTENT
-    )
-
     private lateinit var uploadService: UploadService
-
-    /**
-     * 默认展开标题栏时的高度
-     */
-    private val actionBarHeight = 120.dp2px()
 
     /**
      * 储存剪切板中的数据
@@ -79,6 +70,19 @@ class MainActivity : AppCompatActivity(), ServiceConnection {
     }
 
     private lateinit var sharedPreferences: SharedPreferences
+
+    /**
+     * 是否自动隐藏底部导航栏
+     */
+    var autoHideNav = true
+        set(value) {
+            if (field == value) return
+            field = value
+            val layoutParams = binding.bottomNav.layoutParams as CoordinatorLayout.LayoutParams
+            layoutParams.behavior = if (value) HideBottomViewOnScrollBehavior<View>() else null
+        }
+
+    var autoOpenHideNav = false
 
     override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
         uploadService = (service as UploadService.UploadBinder).getService()
@@ -101,15 +105,6 @@ class MainActivity : AppCompatActivity(), ServiceConnection {
         checkUpdate()
 
         getIntentData(intent)
-
-       /* val register = registerForActivityResult(ScanContract()) {
-
-        }
-        val scanOptions = ScanOptions()
-        scanOptions.apply {
-            setOrientationLocked(true)
-        }
-        register.launch(scanOptions)*/
     }
 
     fun appBar() = binding.appBar
@@ -136,6 +131,10 @@ class MainActivity : AppCompatActivity(), ServiceConnection {
 
         setupActionBarWithNavController(navController, appBarConfiguration)
         binding.bottomNav.setupWithNavController(navController)
+
+        val preference = PreferenceManager.getDefaultSharedPreferences(this)
+        autoHideNav = preference.getBoolean("nav_auto", true)
+        autoOpenHideNav = preference.getBoolean("nav_auto_hide", false)
 
         initEvent(navController, navHostFragment, savedInstanceState)
     }
@@ -164,8 +163,9 @@ class MainActivity : AppCompatActivity(), ServiceConnection {
             binding.fab.isInvisible = !isTopLevDes
             binding.toolbarLayout.title =
                 arguments?.getCharSequence("name", destination.label) ?: destination.label
-
-            if (!isShowBottomNav()) {
+            if (autoOpenHideNav && !isTopLevDes) {
+                hideBottomNav()
+            } else {
                 showBottomNav()
             }
         }
@@ -261,9 +261,22 @@ class MainActivity : AppCompatActivity(), ServiceConnection {
     /**
      * 动画显示底栏
      */
-    private fun showBottomNav() {
+    fun showBottomNav() {
+        if (isShowBottomNav()) {
+            return
+        }
         binding.bottomNav.animate()
             .translationY(0f)
+            .setDuration(250)
+            .start()
+    }
+
+    fun hideBottomNav() {
+        if (binding.bottomNav.translationY != 0f) {
+            return
+        }
+        binding.bottomNav.animate()
+            .translationY(binding.bottomNav.height.toFloat())
             .setDuration(250)
             .start()
     }

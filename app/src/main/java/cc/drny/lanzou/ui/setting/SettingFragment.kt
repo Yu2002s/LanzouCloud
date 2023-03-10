@@ -11,6 +11,8 @@ import androidx.navigation.fragment.findNavController
 import androidx.preference.EditTextPreference
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
+import androidx.preference.SwitchPreferenceCompat
+import cc.drny.lanzou.MainActivity
 import cc.drny.lanzou.R
 import cc.drny.lanzou.data.lanzou.LanzouShareFile
 import cc.drny.lanzou.util.ALiPayUtils
@@ -55,7 +57,8 @@ class SettingFragment: PreferenceFragmentCompat() {
             "Jsoup",
             "Glide",
             "Litepal",
-            "PermissionX"
+            "PermissionX",
+            "Zxing"
         )
 
         findPreference<Preference>("open_source")?.setOnPreferenceClickListener {
@@ -71,6 +74,34 @@ class SettingFragment: PreferenceFragmentCompat() {
         findPreference<Preference>("donation")?.setOnPreferenceClickListener {
             Toast.makeText(requireContext(), "感谢你的支持!", Toast.LENGTH_LONG).show()
             ALiPayUtils.startAlipayClient()
+            true
+        }
+
+        findPreference<Preference>("permission")?.setOnPreferenceClickListener {
+            MaterialAlertDialogBuilder(requireContext()).apply {
+                setTitle("权限说明")
+                setMessage("使用的权限如下:\n\n[储存权限]\n用于上传和下载文件" +
+                        "\n\n[安装应用权限]\n用于文件下载完成后主动跳转安装" +
+                        "\n\n权限仅用于以上用途，您的登录信息已被加密保存在本地")
+                setPositiveButton("我知道了", null)
+                show()
+            }
+            true
+        }
+
+        findPreference<SwitchPreferenceCompat>("nav_auto")?.setOnPreferenceChangeListener { _, newValue ->
+            (requireActivity() as MainActivity).apply {
+                autoHideNav = newValue as Boolean
+                showBottomNav()
+            }
+            true
+        }
+
+        findPreference<SwitchPreferenceCompat>("nav_auto_hide")?.setOnPreferenceChangeListener { _, newValue ->
+            (requireActivity() as MainActivity).apply {
+                autoOpenHideNav = newValue as Boolean
+                showBottomNav()
+            }
             true
         }
     }

@@ -27,6 +27,7 @@ import androidx.viewpager2.widget.ViewPager2.OnPageChangeCallback
 import cc.drny.lanzou.R
 import cc.drny.lanzou.adapter.BaseAdapter
 import cc.drny.lanzou.base.BaseFragment
+import cc.drny.lanzou.base.BaseSuperFragment
 import cc.drny.lanzou.base.BaseUploadFragment
 import cc.drny.lanzou.data.lanzou.LanzouFile
 import cc.drny.lanzou.data.lanzou.LanzouPage
@@ -56,6 +57,7 @@ class UploadFileFragment : BaseUploadFragment(), MenuProvider {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        fitNavigationBar = false
         fragments.add(ClassificationFragment())
         fragments.add(FileManagerFragment())
         fragments.add(FileSearchFragment())
@@ -109,8 +111,7 @@ class UploadFileFragment : BaseUploadFragment(), MenuProvider {
         }
 
         binding.fabUpload.setOnClickListener {
-            findNavController().navigate(UploadFileFragmentDirections
-                .actionUploadFileFragmentToUploadFileDialogFragment())
+            uploadFile()
         }
     }
 
@@ -139,16 +140,7 @@ class UploadFileFragment : BaseUploadFragment(), MenuProvider {
                 true
             }
            R.id.upload_file -> {
-               val preferences =
-                   PreferenceManager.getDefaultSharedPreferences(requireContext())
-               val quickUpload = preferences.getBoolean("quick_upload", false)
-               if (quickUpload) {
-                   uploadFile()
-               } else {
-                   findNavController().navigate(
-                       UploadFileFragmentDirections.actionUploadFileFragmentToUploadFileDialogFragment()
-                   )
-               }
+               uploadFile()
                true
            }
            else -> false
@@ -156,6 +148,19 @@ class UploadFileFragment : BaseUploadFragment(), MenuProvider {
     }
 
     private fun uploadFile() {
+        val preferences =
+            PreferenceManager.getDefaultSharedPreferences(requireContext())
+        val quickUpload = preferences.getBoolean("quick_upload", false)
+        if (quickUpload) {
+            startUploadFile()
+        } else {
+            findNavController().navigate(
+                UploadFileFragmentDirections.actionUploadFileFragmentToUploadFileDialogFragment()
+            )
+        }
+    }
+
+    private fun startUploadFile() {
         val navController = findNavController()
         val fileFragment = navController.getBackStackEntry(R.id.fileFragment)
         val lanzouPage = fileFragment.arguments?.getParcelable<LanzouPage>("lanzouPage")

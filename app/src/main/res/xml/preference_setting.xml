@@ -60,6 +60,20 @@
             app:title="检查剪切板"
             app:summary="回到软件中自动检查剪切板中的url和密码(支持多文件)"/>
 
+        <SwitchPreferenceCompat
+            app:defaultValue="true"
+            app:key="nav_auto"
+            app:iconSpaceReserved="false"
+            app:title="自动隐藏底栏"
+            app:summary="滑动界面底部导航栏自动隐藏"/>
+
+        <SwitchPreferenceCompat
+            app:defaultValue="false"
+            app:key="nav_auto_hide"
+            app:iconSpaceReserved="false"
+            app:title="非主页主动隐藏"
+            app:summary="打开其他页面时，底部导航栏自动隐藏"/>
+
     </PreferenceCategory>
 
     <PreferenceCategory
@@ -94,6 +108,12 @@
             app:iconSpaceReserved="false"
             app:title="捐赠我"
             app:summary="开发不易，你的支持是我最大的动力"/>
+
+        <Preference
+            app:iconSpaceReserved="false"
+            app:key="permission"
+            app:title="权限相关"
+            app:summary="软件使用到的一些权限和说明"/>
 
     </PreferenceCategory>
 

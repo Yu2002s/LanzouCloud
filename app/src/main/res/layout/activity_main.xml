@@ -9,14 +9,11 @@
 
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottom_nav"
-        app:itemBackground="?attr/selectableItemBackgroundBorderless"
-        app:itemRippleColor="?attr/colorPrimary"
         app:labelVisibilityMode="labeled"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
         android:fitsSystemWindows="true"
-        app:layout_behavior="com.google.android.material.behavior.HideBottomViewOnScrollBehavior"
         app:menu="@menu/menu_nav" />
 
     <com.google.android.material.appbar.AppBarLayout

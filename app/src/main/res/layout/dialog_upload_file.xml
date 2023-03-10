@@ -37,7 +37,6 @@
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/textField"
             android:hint="上传文件到"
-            app:endIconMode="clear_text"
             style="@style/Widget.Material3.TextInputLayout.OutlinedBox.Dense.ExposedDropdownMenu"
             android:layout_width="0dp"
             android:layout_weight="1"

@@ -18,9 +18,12 @@ open class BaseSuperFragment: BaseFragment() {
 
     fun getInsertBottom() = BOTTOM_NAV_HEIGHT + getNavigationBarHeight()
 
+    var fitNavigationBar = true
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        if (!fitNavigationBar) return
         getRecyclerView(view as ViewGroup)?.let {
             it.clipToPadding = false
             it.updatePadding(bottom = it.paddingBottom + getInsertBottom())

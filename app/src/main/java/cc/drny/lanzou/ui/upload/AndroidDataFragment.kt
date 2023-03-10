@@ -15,12 +15,14 @@ import androidx.navigation.NavController
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.navigation.navGraphViewModels
+import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.GridLayoutManager.SpanSizeLookup
 import androidx.viewbinding.ViewBinding
 import cc.drny.lanzou.R
 import cc.drny.lanzou.adapter.FileSelectorAdapter
 import cc.drny.lanzou.base.BaseSuperFragment
+import cc.drny.lanzou.data.lanzou.LanzouPage
 import cc.drny.lanzou.data.upload.FileInfo
 import cc.drny.lanzou.databinding.FragmentAndroidDataBinding
 import cc.drny.lanzou.databinding.ItemListFileSelectorBinding
@@ -122,6 +124,7 @@ class AndroidDataFragment : BaseSuperFragment(), FileFilterable, MenuProvider, S
                 true
             }
             R.id.upload_file -> {
+
                 navController.navigate(
                     FileFragmentDirections.actionGlobalUploadFileDialogFragment()
                 )
@@ -222,7 +225,6 @@ class AndroidDataFragment : BaseSuperFragment(), FileFilterable, MenuProvider, S
             }
         }
     }
-
 
     override fun onDestroy() {
         super.onDestroy()
