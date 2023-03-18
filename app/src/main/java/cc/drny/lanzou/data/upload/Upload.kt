@@ -36,6 +36,9 @@ data class Upload(
     @Column(ignore = true)
     var icon: Drawable? = null
 
+    @Column(ignore = true)
+    var isSelected = false
+
     fun update() = update(id)
 
     fun insert() {

@@ -26,8 +26,8 @@ android {
         applicationId "cc.drny.lanzou"
         minSdk 24
         targetSdk 33
-        versionCode 36
-        versionName "2.0.12"
+        versionCode 37
+        versionName "2.0.13"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         signingConfig signingConfigs.release

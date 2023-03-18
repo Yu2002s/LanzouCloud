@@ -19,6 +19,10 @@ class UploadViewModel : ViewModel() {
 
     private lateinit var uploadLiveData: MutableLiveData<MutableList<Upload>>
 
+    fun remove(position: Int) {
+        uploadLiveData.value?.removeAt(position)
+    }
+
     fun getUploadList(): LiveData<MutableList<Upload>> {
         if (!::uploadLiveData.isInitialized) {
             uploadLiveData = MutableLiveData()

@@ -3,9 +3,18 @@
     <item android:id="@+id/open_file"
         android:icon="@drawable/baseline_open_in_new_24"
         android:title="打开" />
-    <item android:id="@+id/share_file"
+    <item
         android:icon="@drawable/baseline_share_24"
-        android:title="分享"/>
+        android:title="分享">
+        <menu>
+            <item android:id="@+id/share_file"
+                android:icon="@drawable/baseline_open_in_new_24"
+                android:title="直接分享"/>
+            <item android:id="@+id/copy_text"
+                android:icon="@drawable/baseline_content_copy_24"
+                android:title="复制链接"/>
+        </menu>
+    </item>
     <item android:title="删除"
         android:icon="@drawable/baseline_delete_24"
         android:id="@+id/delete_download"/>

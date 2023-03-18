@@ -1,5 +1,8 @@
 package cc.drny.lanzou.ui.upload
 
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import android.view.Gravity
@@ -27,10 +30,12 @@ import cc.drny.lanzou.event.FileFilterable
 import cc.drny.lanzou.event.OnItemClickListener
 import cc.drny.lanzou.event.Scrollable
 import cc.drny.lanzou.ui.TransmissionFragment
-import cc.drny.lanzou.util.enableMenuIcon
-import cc.drny.lanzou.util.openFile
-import cc.drny.lanzou.util.showToast
+import cc.drny.lanzou.util.*
+import cc.drny.lanzou.util.DateUtils.handleTime
+import cc.drny.lanzou.util.FileUtils.toSize
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.launch
+import java.io.File
 
 class UploadFragment: BaseUploadFragment(), FileFilterable, Scrollable {
 
@@ -41,6 +46,10 @@ class UploadFragment: BaseUploadFragment(), FileFilterable, Scrollable {
 
     private val uploadList = mutableListOf<Upload>()
     private val uploadAdapter = UploadAdapter(uploadList)
+
+    private val clipboardManager by lazy {
+        requireContext().getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -57,15 +66,58 @@ class UploadFragment: BaseUploadFragment(), FileFilterable, Scrollable {
                 popupMenu.menu.enableMenuIcon()
                 popupMenu.show()
                 popupMenu.setOnMenuItemClickListener {
-                    "还没做".showToast()
                     when (it.itemId) {
                         R.id.open_file -> {
-                            data.path.openFile()
+                            data.path.getUploadFile(data.name).openFile()
                         }
-                        R.id.delete_file -> {
-                            /*lifecycleScope.launch {
+                        R.id.share_file -> {
+                            val shareIntent = data.path.getUploadFile(data.name).getShareIntent()
+                            startActivity(shareIntent)
+                        }
+                        R.id.copy_text -> {
+                            val url = "https://www.lanzoui.com/${data.encryptId}"
+                            clipboardManager.setPrimaryClip(ClipData.newPlainText("url", url))
+                        }
+                        R.id.delete_download -> {
+                            lifecycleScope.launch {
                                 // 删除队列
-                            }*/
+                                if (requireUploadService().deleteUpload(data)) {
+                                    uploadList.removeAt(position)
+                                    uploadViewModel.remove(position)
+                                    uploadAdapter.notifyItemRemoved(position)
+                                }
+                            }
+                        }
+                        R.id.detail_file -> {
+                            val url = "https://www.lanzoui.com/${data.encryptId}"
+                            MaterialAlertDialogBuilder(requireContext()).apply {
+                                setTitle("文件详情")
+                                val items = arrayOf(
+                                    "文件名: ${data.name}",
+                                    "文件大小: " + data.length.toSize(),
+                                    "上传时间: " + data.time.handleTime(),
+                                    "上传状态: " + data.getStatusStr(),
+                                    "下载地址: $url",
+                                    "当前路径: ${data.path}"
+                                )
+                                setItems(items) { _, index ->
+                                    when (index) {
+                                        0, 4, 5 -> {
+                                            val item = items[index].split(" ")
+                                            val content = item[1]
+                                            clipboardManager.setPrimaryClip(
+                                                ClipData.newPlainText(
+                                                    "text",
+                                                    content
+                                                )
+                                            )
+                                            "${item[0]}已复制".showToast()
+                                        }
+                                    }
+                                }
+                                setPositiveButton("关闭", null)
+                                show()
+                            }
                         }
                     }
                     true

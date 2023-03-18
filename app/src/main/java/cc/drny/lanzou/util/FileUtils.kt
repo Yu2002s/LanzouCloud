@@ -142,11 +142,27 @@ fun File.openFile(): Boolean {
     return true
 }
 
+fun String.getUploadPath(name: String): String {
+    return if (startsWith("content://")) {
+        LanzouApplication.context.externalCacheDir!!.path + "/$name"
+    } else {
+        this
+    }
+}
+
+fun String.getUploadFile(name: String): File {
+    return File(getUploadPath(name))
+}
+
 /**
  *  通过文件路径打开一个文件
  */
 fun String.openFile(): Boolean {
     return File(this).openFile()
+}
+
+fun File.getShareIntent(title: String = "分享到"): Intent {
+    return Intent.createChooser(getIntent(Intent.ACTION_SEND), title)
 }
 
 fun File.getIntent(action: String = Intent.ACTION_VIEW): Intent {
@@ -454,20 +470,3 @@ fun String.uriString2Path(): String {
     return "/storage/emulated/0/" + substring(last).replace("%2F", "/")
 }
 
-/**
- * 是否已经授权访问android data 目录
- */
-/*
-fun String.isGrantedAccessAndroidData(): Boolean {
-    val context = LanzouApplication.context
-    val persistedUriPermissions = context.contentResolver.persistedUriPermissions
-    val uri = androidDataUri + "%2F" + this.replace("/", "%2F")
-    for (persistedUriPermission in persistedUriPermissions) {
-        if (persistedUriPermission.isReadPermission
-            && persistedUriPermission.uri.toString() == uri
-        ) {
-            return true
-        }
-    }
-    return false
-}*/

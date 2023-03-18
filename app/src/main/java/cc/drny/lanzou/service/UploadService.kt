@@ -118,7 +118,8 @@ class UploadService : Service() {
                 }
             }
             true
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            e.printStackTrace()
             false
         }
     }
@@ -136,8 +137,12 @@ class UploadService : Service() {
         val path = upload.path
         val isUri = path.startsWith("content://")
         val file = if (isUri) {
-            upload.path.toUri().toFile() ?: throw IllegalStateException("文件上传出错")
-        } else File(upload.path)
+            val target = path.toUri().toFile() ?: throw IllegalStateException("文件上传出错")
+            // upload.path = target.path
+            target
+        } else {
+            File(path)
+        }
         // 标记正在上传了
         upload.progress()
 
