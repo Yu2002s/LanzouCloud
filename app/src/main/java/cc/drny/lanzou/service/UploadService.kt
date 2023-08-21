@@ -178,6 +178,7 @@ class UploadService : Service() {
                 uploadListener?.onUpload(Completed(upload))
             }
         } else {
+            Log.d("jdy", uploadResponse.toString())
             throw IllegalStateException("上传出错了")
         }
     }

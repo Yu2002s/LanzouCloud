@@ -166,7 +166,7 @@ object LanzouRepository {
             if (cookieHeader == null) {
                 val userCookie = getUserCookie()
                 if (userCookie != null) {
-                     request = request.newBuilder().addHeader("Cookie", userCookie).build()
+                    request = request.newBuilder().addHeader("Cookie", userCookie).build()
                 }
             }
             val response = it.proceed(request)
@@ -490,9 +490,14 @@ object LanzouRepository {
                         pwd
                     ).await()
                 val status = downloadUrlResponse.status
+
                 if (status == 1) {
-                    val downloadUrl =
-                        downloadUrlResponse.dom + "/file/" + downloadUrlResponse.url
+                    var downloadUrl =
+                        /*downloadUrlResponse.dom + "/file/" + */downloadUrlResponse.url
+                    Log.d("jdy", downloadUrl)
+                    if (!downloadUrl.startsWith("https")) {
+                        downloadUrl = downloadUrlResponse.dom + "/file/" + downloadUrl
+                    }
                     Result.success(downloadUrl)
                 } else throw IllegalStateException("获取文件信息出错")
             } else throw IllegalStateException("解析文件出错")
@@ -688,59 +693,60 @@ object LanzouRepository {
         }
     }
 
-    suspend fun getLanzouFilesForUrl(url: String, pwd: String? = null, page: Int = 1) = catchResult {
-        val document = getHtmlDocument(url, true)
-        val html = document.html()
-        val map = mutableMapOf<String, String>()
-        val regex = Regex("'fid':(\\d+),[\\s\\n]+'uid':'(\\d+)',")
-        val matchResult = regex.find(html) ?: throw IllegalStateException("11111111")
-        val regex2 = Regex("'t':(.+),[\\s\\n]+'k':(.+),")
-        val matchResult2 = regex2.find(html) ?: throw IllegalStateException("222222")
-        val fid = matchResult.destructured.component1()
-        val uid = matchResult.destructured.component2()
-        val t = matchResult2.destructured.component1()
-        val k = matchResult2.destructured.component2()
-        val regex3 = Regex("var $t = '(\\d+)';\\s+var $k = '([\\da-z]+)';")
-        val matchResult3 = regex3.find(html) ?: throw IllegalStateException("获取资源失败222")
-        map["lx"] = "2"
-        map["fid"] = fid
-        map["uid"] = uid
-        map["rep"] = "0"
-        map["t"] = matchResult3.destructured.component1()
-        map["k"] = matchResult3.destructured.component2()
-        map["up"] = "1"
-        map["ls"] = "1"
-        map["pg"] = page.toString()
-        if (pwd != null) {
-            map["pwd"] = pwd
-        }
-        val index = url.lastIndexOf("/") + 1
-        val host = url.substring(0, index) + "filemoreajax.php"
-        val lanzouAnalyzingFileResponse = lanzouService.getLanzouFilesForUrl(host, map).await()
-        if (lanzouAnalyzingFileResponse.status == 1) {
-            val files = lanzouAnalyzingFileResponse.files
-                .map {
-                    if (it.extension == "apk") {
-                        val nameResult = FILE_REGEX.find(it.name_all)
-                        if (nameResult != null) {
-                            it.extension = nameResult.destructured.component2()
-                            it.name_all = nameResult.destructured.component1() +
-                                    "." + it.extension
+    suspend fun getLanzouFilesForUrl(url: String, pwd: String? = null, page: Int = 1) =
+        catchResult {
+            val document = getHtmlDocument(url, true)
+            val html = document.html()
+            val map = mutableMapOf<String, String>()
+            val regex = Regex("'fid':(\\d+),[\\s\\n]+'uid':'(\\d+)',")
+            val matchResult = regex.find(html) ?: throw IllegalStateException("11111111")
+            val regex2 = Regex("'t':(.+),[\\s\\n]+'k':(.+),")
+            val matchResult2 = regex2.find(html) ?: throw IllegalStateException("222222")
+            val fid = matchResult.destructured.component1()
+            val uid = matchResult.destructured.component2()
+            val t = matchResult2.destructured.component1()
+            val k = matchResult2.destructured.component2()
+            val regex3 = Regex("var $t = '(\\d+)';\\s+var $k = '([\\da-z]+)';")
+            val matchResult3 = regex3.find(html) ?: throw IllegalStateException("获取资源失败222")
+            map["lx"] = "2"
+            map["fid"] = fid
+            map["uid"] = uid
+            map["rep"] = "0"
+            map["t"] = matchResult3.destructured.component1()
+            map["k"] = matchResult3.destructured.component2()
+            map["up"] = "1"
+            map["ls"] = "1"
+            map["pg"] = page.toString()
+            if (pwd != null) {
+                map["pwd"] = pwd
+            }
+            val index = url.lastIndexOf("/") + 1
+            val host = url.substring(0, index) + "filemoreajax.php"
+            val lanzouAnalyzingFileResponse = lanzouService.getLanzouFilesForUrl(host, map).await()
+            if (lanzouAnalyzingFileResponse.status == 1) {
+                val files = lanzouAnalyzingFileResponse.files
+                    .map {
+                        if (it.extension == "apk") {
+                            val nameResult = FILE_REGEX.find(it.name_all)
+                            if (nameResult != null) {
+                                it.extension = nameResult.destructured.component2()
+                                it.name_all = nameResult.destructured.component1() +
+                                        "." + it.extension
+                            }
                         }
+                        LanzouFile(
+                            name_all = it.name_all,
+                            fid = it.id,
+                            size = it.size,
+                            time = it.time,
+                            icon = it.extension
+                        )
                     }
-                    LanzouFile(
-                        name_all = it.name_all,
-                        fid = it.id,
-                        size = it.size,
-                        time = it.time,
-                        icon = it.extension
-                    )
-                }
-            Result.success(files)
-        } else {
-            Result.failure(Throwable(lanzouAnalyzingFileResponse.info))
+                Result.success(files)
+            } else {
+                Result.failure(Throwable(lanzouAnalyzingFileResponse.info))
+            }
         }
-    }
 
     private fun getAnalyzeFileParams() {
 

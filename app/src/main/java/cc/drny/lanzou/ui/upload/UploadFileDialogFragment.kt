@@ -136,6 +136,10 @@ class UploadFileDialogFragment : BottomSheetDialogFragment(), ServiceConnection 
             }
         }
 
+        if (folderList.isEmpty()) {
+            folderList.add(LanzouFolder(-1, "根目录"))
+        }
+
         binding.btnUpload.setOnClickListener {
             if (viewModel.selectedList.isEmpty()) return@setOnClickListener
             if (folderList.isEmpty()) return@setOnClickListener

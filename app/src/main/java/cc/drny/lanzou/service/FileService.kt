@@ -44,7 +44,8 @@ interface FileService {
     /**
      * 上传文件
      */
-    @POST("fileup.php")
+    @Headers("User-Agent: Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.3 Mobile/15E148 Safari/604.1 Edg/106.0.0.0")
+    @POST("html5up.php")
     fun uploadFile(@Body requestBody: RequestBody): Call<LanzouUploadResponse>
 
     /**

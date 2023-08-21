@@ -69,7 +69,7 @@ class DownloadService : Service() {
             val request = it.request()
             val response = it.proceed(request)
             val location = response.header("Location")
-            if (location != null) {
+            if (location != null && !location.startsWith("itms-services://")) {
                 response.close()
                 it.proceed(
                     request.newBuilder()
@@ -355,6 +355,7 @@ class DownloadService : Service() {
                 .url(downloadUrl)
                 .headers(HttpParam.httpHeaders)
                 .addHeader("Range", "bytes=${thread.start}-${thread.end}")
+                .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36 Edg/113.0.1774.57Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36 Edg/113.0.1774.57")
                 .build()
             val response = okHttpClient.newCall(request).execute()
             val body = response.body ?: throw IllegalStateException("body is null")
@@ -394,8 +395,10 @@ class DownloadService : Service() {
     }
 
     private fun getResponse(url: String): Response {
+            Log.d("jdy", "getResponse: " + url)
         val request = Request.Builder().url(url)
             .headers(HttpParam.httpHeaders)
+            .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36 Edg/113.0.1774.57")
             .addHeader("Range", "bytes=0-")
             .build()
         return okHttpClient.newCall(request).execute()
