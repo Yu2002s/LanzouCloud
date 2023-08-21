@@ -10,7 +10,7 @@ import org.litepal.LitePal
 class LanzouApplication: Application() {
 
     companion object {
-        const val LANZOU_HOST = "https://pc.woozooo.com/"
+        const val LANZOU_HOST = "https://up.woozooo.com/"
         const val LANZOU_HOST_FILE = "${LANZOU_HOST}mydisk.php"
         const val LANZOU_HOST_REGISTER = "${LANZOU_HOST}account.php?action=register"
         const val LANZOU_HOST_MYSELF = "${LANZOU_HOST}myfile.php?item=1&v2"
