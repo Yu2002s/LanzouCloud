@@ -1,7 +1,6 @@
 package cc.drny.lanzou.network
 
 import android.content.Context
-import android.text.style.IconMarginSpan
 import android.util.Log
 import android.webkit.MimeTypeMap
 import androidx.core.content.ContextCompat
@@ -15,7 +14,6 @@ import cc.drny.lanzou.event.UploadProgressListener
 import cc.drny.lanzou.service.FileService
 import cc.drny.lanzou.service.UserService
 import cc.drny.lanzou.util.LanzouAnalyzeException
-import cc.drny.lanzou.util.getAppIcon
 import cc.drny.lanzou.util.getIcon
 import com.google.gson.Gson
 import com.tencent.mmkv.MMKV
@@ -191,13 +189,10 @@ object LanzouRepository {
     /**
      * 检查更新
      */
-    suspend fun checkUpdate(versionCode: Long) = catchResult {
-        val formBody = FormBody.Builder()
-            .add("code", versionCode.toString())
-            .build()
+    suspend fun checkUpdate() = catchResult {
         val request = Request.Builder()
-            .url("http://180.76.101.239/lanzou/update/update.php")
-            .post(formBody)
+            .url("https://yu2002s.github.io/LanzouCloud/update.json")
+            .get()
             .build()
         val response = okHttpClient.newCall(request).execute()
         val body = response.body ?: throw IllegalStateException()

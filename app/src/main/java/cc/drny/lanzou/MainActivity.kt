@@ -6,16 +6,13 @@ import android.content.ComponentName
 import android.content.Intent
 import android.content.ServiceConnection
 import android.content.SharedPreferences
-import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
-import android.net.Uri
 import android.os.*
 import android.util.Log
 import android.util.TypedValue
 import android.view.Gravity
 import android.view.View
 import android.widget.PopupWindow
-import androidx.appcompat.app.ActionBar
 import androidx.appcompat.app.AppCompatActivity
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.content.pm.PackageInfoCompat
@@ -43,10 +40,7 @@ import cc.drny.lanzou.util.showToast
 import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.appbar.CollapsingToolbarLayout
 import com.google.android.material.behavior.HideBottomViewOnScrollBehavior
-import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.journeyapps.barcodescanner.ScanContract
-import com.journeyapps.barcodescanner.ScanOptions
 import com.permissionx.guolindev.PermissionX
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -371,15 +365,18 @@ class MainActivity : AppCompatActivity(), ServiceConnection {
 
     private fun checkUpdate() {
         lifecycleScope.launch {
+            // 这里进行检查更新
+            val packageInfo = packageManager.getPackageInfo(packageName, 0)
+            val versionCode = PackageInfoCompat.getLongVersionCode(packageInfo)
             withContext(Dispatchers.IO) {
-                // 这里进行检查更新
-                val packageInfo = packageManager.getPackageInfo(packageName, 0)
-                val versionCode = PackageInfoCompat.getLongVersionCode(packageInfo)
-                LanzouRepository.checkUpdate(versionCode)
+                LanzouRepository.checkUpdate()
             }.onSuccess {
                 if (it == null) return@onSuccess
+                if (it.versionCode <= versionCode) {
+                    return@onSuccess
+                }
                 MaterialAlertDialogBuilder(this@MainActivity).apply {
-                    setTitle("发现新版本${it.name}")
+                    setTitle("发现新版本${it.versionName}")
                     setMessage(it.content)
                     setPositiveButton("更新") { _, _ ->
                         startActivity(Intent(Intent.ACTION_VIEW, it.url.toUri()))

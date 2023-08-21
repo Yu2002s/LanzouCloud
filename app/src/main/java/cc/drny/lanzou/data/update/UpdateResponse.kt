@@ -6,8 +6,8 @@ data class UpdateResponse(
     val update: Update? = null
 ) {
     data class Update(
-        val name: String,
-        val code: Int,
+        val versionName: String,
+        val versionCode: Int,
         val url: String,
         val content: String,
         val date: String,
